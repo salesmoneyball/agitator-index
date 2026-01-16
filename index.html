@@ -38,6 +38,41 @@
 
         .sub-text { font-size: 0.9rem; color: #666; margin-bottom: 30px; }
 
+        /* INPUT FIELDS (TERMINAL STYLE) */
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: #444;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            color: #00ff41; /* Green Text */
+            font-family: 'Courier New', monospace;
+            padding: 10px;
+            font-size: 1rem;
+            outline: none;
+            box-sizing: border-box; /* Fixes padding issues */
+            transition: border 0.2s;
+        }
+
+        input:focus {
+            border-color: #00ff41;
+        }
+
+        input::placeholder {
+            color: #333;
+        }
+
         /* VISUALIZER BAR */
         .status-bar {
             height: 4px;
@@ -73,11 +108,13 @@
 
         button:hover { background: #000; color: #00ff41; }
         
+        /* DISABLED STATE (GREYED OUT) */
         button:disabled {
-            background: #333;
-            border-color: #333;
-            color: #666;
+            background: #222;
+            border-color: #222;
+            color: #444;
             cursor: not-allowed;
+            pointer-events: none; /* Prevents clicking */
         }
 
         .stop-btn {
@@ -103,3 +140,12 @@
 
     <div class="interface-box">
         <h1>Agitator Index™</h1>
+        <div class="sub-text">VOICE SIMULATION PROTOCOL V2.7</div>
+
+        <div class="input-group">
+            <label>OPERATOR NAME</label>
+            <input type="text" id="user-name" placeholder="Enter Full Name" autocomplete="off">
+        </div>
+        <div class="input-group">
+            <label>COMM LINK (EMAIL)</label>
+            <input type="email" id="user-email" placeholder="name@company.com"
