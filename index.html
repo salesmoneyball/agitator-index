@@ -13,8 +13,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh; /* Changed to min-height for safety */
             margin: 0;
+            padding: 20px; /* Adds breathing room on mobile */
+            box-sizing: border-box;
         }
 
         .interface-box {
@@ -25,6 +27,7 @@
             padding: 40px;
             box-shadow: 0 0 40px rgba(0,0,0,0.8);
             text-align: center;
+            position: relative;
         }
 
         h1 {
@@ -40,7 +43,7 @@
 
         /* INPUT FIELDS (TERMINAL STYLE) */
         .input-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             text-align: left;
         }
 
@@ -48,104 +51,4 @@
             font-family: 'Courier New', monospace;
             font-size: 0.7rem;
             color: #444;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        input {
-            width: 100%;
-            background: #0a0a0a;
-            border: 1px solid #333;
-            color: #00ff41; /* Green Text */
-            font-family: 'Courier New', monospace;
-            padding: 10px;
-            font-size: 1rem;
-            outline: none;
-            box-sizing: border-box; /* Fixes padding issues */
-            transition: border 0.2s;
-        }
-
-        input:focus {
-            border-color: #00ff41;
-        }
-
-        input::placeholder {
-            color: #333;
-        }
-
-        /* VISUALIZER BAR */
-        .status-bar {
-            height: 4px;
-            width: 100%;
-            background: #111;
-            margin: 30px 0;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .status-fill {
-            height: 100%;
-            width: 0%;
-            background: #00ff41;
-            transition: width 0.2s;
-            box-shadow: 0 0 10px #00ff41;
-        }
-
-        /* BUTTONS */
-        button {
-            background: #00ff41;
-            color: #000;
-            border: 1px solid #00ff41;
-            padding: 15px 30px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            width: 100%;
-            transition: all 0.2s;
-        }
-
-        button:hover { background: #000; color: #00ff41; }
-        
-        /* DISABLED STATE (GREYED OUT) */
-        button:disabled {
-            background: #222;
-            border-color: #222;
-            color: #444;
-            cursor: not-allowed;
-            pointer-events: none; /* Prevents clicking */
-        }
-
-        .stop-btn {
-            background: transparent;
-            border-color: #ff3333;
-            color: #ff3333;
-            margin-top: 10px;
-            display: none;
-        }
-        
-        .stop-btn:hover { background: #ff3333; color: #000; }
-
-        .log-output {
-            margin-top: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            color: #444;
-            min-height: 20px;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="interface-box">
-        <h1>Agitator Index™</h1>
-        <div class="sub-text">VOICE SIMULATION PROTOCOL V2.7</div>
-
-        <div class="input-group">
-            <label>OPERATOR NAME</label>
-            <input type="text" id="user-name" placeholder="Enter Full Name" autocomplete="off">
-        </div>
-        <div class="input-group">
-            <label>COMM LINK (EMAIL)</label>
-            <input type="email" id="user-email" placeholder="name@company.com"
+            display: block
