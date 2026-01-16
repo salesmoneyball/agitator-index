@@ -308,10 +308,22 @@
         async function startAudit() {
             log("CONNECTING...", "#888");
             startBtn.disabled = true;
-            console.log("LEAD:", nameInput.value, emailInput.value, phoneInput.value);
+
+            // 1. Capture the data
+            const leadData = {
+                name: nameInput.value,
+                email: emailInput.value,
+                phone: phoneInput.value
+            };
 
             try {
-                const response = await fetch(REGISTER_CALL_URL);
+                // 2. Send data to your Backend
+                const response = await fetch(REGISTER_CALL_URL, {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' }, // Tell server it's JSON
+                    body: JSON.stringify(leadData) // Pack the luggage
+                });
+
                 if (!response.ok) throw new Error("Backend Failed");
                 const data = await response.json();
                 
