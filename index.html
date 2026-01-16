@@ -13,9 +13,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh; /* Changed to min-height for safety */
+            min-height: 100vh;
             margin: 0;
-            padding: 20px; /* Adds breathing room on mobile */
+            padding: 20px;
             box-sizing: border-box;
         }
 
@@ -41,10 +41,11 @@
 
         .sub-text { font-size: 0.9rem; color: #666; margin-bottom: 30px; }
 
-        /* INPUT FIELDS (TERMINAL STYLE) */
+        /* INPUT FIELDS */
         .input-group {
             margin-bottom: 20px;
             text-align: left;
+            transition: opacity 0.5s;
         }
 
         label {
@@ -53,216 +54,4 @@
             color: #444;
             display: block;
             margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-
-        input {
-            width: 100%;
-            background: #0a0a0a;
-            border: 1px solid #333;
-            color: #00ff41; /* Green Text */
-            font-family: 'Courier New', monospace;
-            padding: 12px;
-            font-size: 1rem;
-            outline: none;
-            box-sizing: border-box; 
-            transition: border 0.2s;
-        }
-
-        input:focus {
-            border-color: #00ff41;
-            background: #000;
-        }
-
-        /* VISUALIZER BAR */
-        .status-bar {
-            height: 4px;
-            width: 100%;
-            background: #111;
-            margin: 30px 0;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .status-fill {
-            height: 100%;
-            width: 0%;
-            background: #00ff41;
-            transition: width 0.2s;
-            box-shadow: 0 0 10px #00ff41;
-        }
-
-        /* BUTTONS */
-        button {
-            background: #00ff41;
-            color: #000;
-            border: 1px solid #00ff41;
-            padding: 15px 30px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            width: 100%;
-            transition: all 0.2s;
-        }
-
-        button:hover { background: #000; color: #00ff41; }
-        
-        button:disabled {
-            background: #1a1a1a;
-            border-color: #1a1a1a;
-            color: #444;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-
-        .stop-btn {
-            background: transparent;
-            border-color: #ff3333;
-            color: #ff3333;
-            margin-top: 10px;
-            display: none;
-        }
-        
-        .stop-btn:hover { background: #ff3333; color: #000; }
-
-        .log-output {
-            margin-top: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            color: #444;
-            min-height: 20px;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="interface-box">
-        <h1>Agitator Index™</h1>
-        <div class="sub-text">VOICE SIMULATION PROTOCOL V2.8</div>
-
-        <div class="input-group">
-            <label>OPERATOR NAME</label>
-            <input type="text" id="user-name" placeholder="Enter Full Name" autocomplete="off">
-        </div>
-        
-        <div class="input-group">
-            <label>COMM LINK (EMAIL)</label>
-            <input type="email" id="user-email" placeholder="name@company.com" autocomplete="off">
-        </div>
-        
-        <div class="input-group">
-            <label>PHONE ID</label>
-            <input type="tel" id="user-phone" placeholder="+61..." autocomplete="off">
-        </div>
-
-        <div class="status-bar"><div class="status-fill" id="visualizer"></div></div>
-
-        <button id="start-btn" disabled>AWAITING CREDENTIALS...</button>
-        <button id="stop-btn" class="stop-btn">TERMINATE SESSION</button>
-
-        <div class="log-output" id="status-text">SYSTEM LOCKED // ENTER DETAILS</div>
-    </div>
-
-    <script type="module">
-        import { RetellWebClient } from "https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/+esm";
-
-        const retellWebClient = new RetellWebClient();
-        const startBtn = document.getElementById('start-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const statusText = document.getElementById('status-text');
-        const visualizer = document.getElementById('visualizer');
-        const REGISTER_CALL_URL = "/api/register-call"; 
-
-        const nameInput = document.getElementById('user-name');
-        const emailInput = document.getElementById('user-email');
-        const phoneInput = document.getElementById('user-phone');
-
-        // VALIDATION LOGIC
-        function checkInputs() {
-            if(nameInput.value.length > 2 && emailInput.value.includes('@') && phoneInput.value.length > 5) {
-                startBtn.disabled = false;
-                startBtn.innerText = "INITIATE SEQUENCE";
-                startBtn.style.background = "#00ff41";
-                startBtn.style.borderColor = "#00ff41";
-                startBtn.style.color = "#000";
-                statusText.innerText = ">> CREDENTIALS ACCEPTED";
-                statusText.style.color = "#00ff41";
-            } else {
-                startBtn.disabled = true;
-                startBtn.innerText = "AWAITING CREDENTIALS...";
-                startBtn.style.background = "#1a1a1a";
-                startBtn.style.borderColor = "#1a1a1a";
-                startBtn.style.color = "#444";
-            }
-        }
-
-        nameInput.addEventListener('input', checkInputs);
-        emailInput.addEventListener('input', checkInputs);
-        phoneInput.addEventListener('input', checkInputs);
-
-        // RETELL LOGIC
-        startBtn.addEventListener('click', startAudit);
-        stopBtn.addEventListener('click', stopAudit);
-
-        retellWebClient.on("call_started", () => {
-            log("CONNECTION ESTABLISHED", "#00ff41");
-            startBtn.style.display = 'none';
-            stopBtn.style.display = 'inline-block';
-            visualizer.style.width = "100%";
-            // Dim inputs during call
-            document.querySelectorAll('.input-group').forEach(el => el.style.opacity = '0.3');
-        });
-
-        retellWebClient.on("call_ended", () => {
-            log("SESSION ENDED. RESETTING...", "#666");
-            visualizer.style.width = "0%";
-            setTimeout(() => { location.reload(); }, 2000);
-        });
-
-        retellWebClient.on("agent_start_talking", () => {
-            log("AGENT SPEAKING...", "#00ff41");
-        });
-
-        retellWebClient.on("error", (error) => {
-            console.error(error);
-            log("ERROR: " + (error.message || "UNKNOWN"), "#ff3333");
-            retellWebClient.stopCall();
-        });
-
-        async function startAudit() {
-            log("CONNECTING...", "#888");
-            startBtn.disabled = true;
-            
-            // Log the Lead
-            console.log("LEAD:", nameInput.value, emailInput.value, phoneInput.value);
-
-            try {
-                const response = await fetch(REGISTER_CALL_URL);
-                if (!response.ok) throw new Error("Backend Failed");
-                const data = await response.json();
-                
-                log("INITIALIZING AUDIO...", "#888");
-                await retellWebClient.startCall({
-                    accessToken: data.access_token,
-                });
-            } catch (err) {
-                console.error(err);
-                log("FAIL: " + err.message, "#ff3333");
-                startBtn.disabled = false;
-                startBtn.innerText = "RETRY SEQUENCE";
-            }
-        }
-
-        function stopAudit() {
-            retellWebClient.stopCall();
-        }
-
-        function log(msg, color) {
-            statusText.innerText = ">> " + msg;
-            statusText.style.color = color;
-        }
-    </script>
-</body>
-</html>
+            text-transform: uppercase
