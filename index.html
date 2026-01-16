@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGITATOR INDEX | TERMINAL</title>
+    <style>
+        /* ENTERPRISE DARK MODE CSS */
+        body {
+            background-color: #080808;
+            color: #888;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .interface-box {
+            width: 100%;
+            max-width: 500px;
+            background: #000;
+            border: 1px solid #333;
+            padding: 40px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Courier New', monospace;
+            color: #ccc;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
+        }
+
+        .sub-text { font-size: 0.9rem; color: #666; margin-bottom: 30px; }
+
+        /* VISUALIZER BAR */
+        .status-bar {
+            height: 4px;
+            width: 100%;
+            background: #111;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .status-fill {
+            height: 100%;
+            width: 0%;
+            background: #00ff41;
+            transition: width 0.2s;
+            box-shadow: 0 0 10px #00ff41;
+        }
+
+        /* BUTTONS */
+        button {
+            background: #00ff41;
+            color: #000;
+            border: 1px solid #00ff41;
+            padding: 15px 30px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        button:hover { background: #000; color: #00ff41; }
+        
+        button:disabled {
+            background: #333;
+            border-color: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .stop-btn {
+            background: transparent;
+            border-color: #ff3333;
+            color: #ff3333;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .stop-btn:hover { background: #ff3333; color: #000; }
+
+        .log-output {
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #444;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="interface-box">
+        <h1>Agitator Index™</h1>
+        <div class="sub-text">VOICE SIMULATION PROTOCOL V2.4</div>
+
+        <div class="status-bar"><div class="status-fill" id="visualizer"></div></div>
+
+        <button id="start-btn" onclick="startAudit()">INITIATE SEQUENCE</button>
+        <button id="stop-btn" class="stop-btn" onclick="stopAudit()">TERMINATE SESSION</button>
+
+        <div class="log-output" id="status-text">SYSTEM READY...</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/dist/index.umd.js"></script>
+    <script>
+        const retellWebClient = new RetellWebClient();
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const statusText = document.getElementById('status-text');
+        const visualizer = document.getElementById('visualizer');
+
+        // POINT TO YOUR VERCEL API
+        const REGISTER_CALL_URL = "/api/register-call"; 
+
+        retellWebClient.on("call_started", () => {
+            statusText.innerText = ">> RECORDING ACTIVE";
+            statusText.style.color = "#00ff41";
+            startBtn.style.display = 'none';
+            stopBtn.style.display = 'inline-block';
+            visualizer.style.width = "100%";
+        });
+
+        retellWebClient.on("call_ended", () => {
+            statusText.innerText = ">> UPLOADING DATA...";
+            statusText.style.color = "#666";
+            visualizer.style.width = "0%";
+            setTimeout(() => {
+                location.reload(); // Refresh to reset
+            }, 2000);
+        });
+
+        async function startAudit() {
+            startBtn.innerText = "CONNECTING...";
+            startBtn.disabled = true;
+
+            try {
+                const response = await fetch(REGISTER_CALL_URL);
+                const data = await response.json();
+
+                await retellWebClient.startCall({
+                    accessToken: data.access_token,
+                });
+
+            } catch (err) {
+                console.error(err);
+                statusText.innerText = ">> ERROR: CHECK API KEYS";
+                statusText.style.color = "#ff3333";
+                startBtn.disabled = false;
+                startBtn.innerText = "INITIATE SEQUENCE";
+            }
+        }
+
+        function stopAudit() {
+            retellWebClient.stopCall();
+        }
+    </script>
+</body>
+</html>
