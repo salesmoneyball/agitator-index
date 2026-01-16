@@ -152,4 +152,183 @@
             background: transparent;
             border-color: #ff3333;
             color: #ff3333;
-            margin-top: 1
+            margin-top: 10px;
+            display: none;
+        }
+        .stop-btn:hover { background: #ff3333; color: #000; }
+
+        .log-output {
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: #444;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="interface-box">
+        <h1>Agitator Index™</h1>
+        <div class="sub-text">VOICE SIMULATION PROTOCOL V3.2</div>
+
+        <div id="credentials-form">
+            <div class="input-group">
+                <label>ACCESS CODE (REQUIRED)</label>
+                <input type="password" id="access-code" placeholder="ENTER CODE" autocomplete="off">
+            </div>
+
+            <div class="input-group">
+                <label>OPERATOR NAME</label>
+                <input type="text" id="user-name" placeholder="Enter Full Name" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>COMM LINK (EMAIL)</label>
+                <input type="email" id="user-email" placeholder="name@company.com" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>PHONE ID</label>
+                <input type="tel" id="user-phone" placeholder="+61..." autocomplete="off">
+            </div>
+        </div>
+
+        <div class="status-bar"><div class="status-fill" id="visualizer"></div></div>
+
+        <div id="live-terminal" class="terminal-window">
+            <span class="terminal-label">>> INCOMING TRANSMISSION</span>
+            <span id="agent-text">...</span><span class="cursor"></span>
+        </div>
+
+        <button id="start-btn" disabled>SYSTEM LOCKED</button>
+        <button id="stop-btn" class="stop-btn">TERMINATE SESSION</button>
+
+        <div class="log-output" id="status-text">ENTER ACCESS CODE TO PROCEED</div>
+    </div>
+
+    <script type="module">
+        import { RetellWebClient } from "https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/+esm";
+
+        const retellWebClient = new RetellWebClient();
+        
+        // ELEMENTS
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const statusText = document.getElementById('status-text');
+        const visualizer = document.getElementById('visualizer');
+        const liveTerminal = document.getElementById('live-terminal');
+        const agentText = document.getElementById('agent-text');
+        const credentialsForm = document.getElementById('credentials-form');
+        
+        const REGISTER_CALL_URL = "/api/register-call"; 
+
+        const codeInput = document.getElementById('access-code');
+        const nameInput = document.getElementById('user-name');
+        const emailInput = document.getElementById('user-email');
+        const phoneInput = document.getElementById('user-phone');
+
+        // *** SET YOUR PASSWORD HERE ***
+        const SECRET_CODE = "MONEYBALL"; 
+
+        // VALIDATION
+        function checkInputs() {
+            // Check Password Match
+            const isCodeValid = codeInput.value.toUpperCase() === SECRET_CODE;
+            
+            // Visual feedback for password
+            if (isCodeValid) {
+                codeInput.classList.add('valid-code');
+            } else {
+                codeInput.classList.remove('valid-code');
+            }
+
+            // Check All Fields
+            if(isCodeValid && nameInput.value.length > 2 && emailInput.value.includes('@') && phoneInput.value.length > 5) {
+                startBtn.disabled = false;
+                startBtn.innerText = "INITIATE SEQUENCE";
+                startBtn.style.background = "#00ff41";
+                startBtn.style.borderColor = "#00ff41";
+                startBtn.style.color = "#000";
+                statusText.innerText = ">> CREDENTIALS & CODE ACCEPTED";
+                statusText.style.color = "#00ff41";
+            } else {
+                startBtn.disabled = true;
+                if (!isCodeValid && codeInput.value.length > 0) {
+                     startBtn.innerText = "INVALID ACCESS CODE";
+                } else {
+                     startBtn.innerText = "SYSTEM LOCKED";
+                }
+                startBtn.style.background = "#1a1a1a";
+                startBtn.style.borderColor = "#1a1a1a";
+                startBtn.style.color = "#444";
+            }
+        }
+        
+        codeInput.addEventListener('input', checkInputs);
+        nameInput.addEventListener('input', checkInputs);
+        emailInput.addEventListener('input', checkInputs);
+        phoneInput.addEventListener('input', checkInputs);
+
+        // LOGIC
+        retellWebClient.on("call_started", () => {
+            log("CONNECTION ESTABLISHED", "#00ff41");
+            startBtn.style.display = 'none';
+            stopBtn.style.display = 'inline-block';
+            visualizer.style.width = "100%";
+            credentialsForm.style.display = 'none';
+            liveTerminal.style.display = 'block';
+            agentText.innerText = "INITIALIZING VOICE LINK...";
+        });
+
+        retellWebClient.on("call_ended", () => {
+            log("SESSION ENDED. UPLOADING...", "#666");
+            visualizer.style.width = "0%";
+            agentText.innerText = "LINK SEVERED.";
+            setTimeout(() => { location.reload(); }, 3000);
+        });
+
+        retellWebClient.on("error", (error) => {
+            console.error(error);
+            log("ERROR: " + (error.message || "UNKNOWN"), "#ff3333");
+            retellWebClient.stopCall();
+        });
+
+        retellWebClient.on("update", (update) => {
+            if (update.transcript && update.transcript.length > 0) {
+                const lastMsg = update.transcript[update.transcript.length - 1];
+                if (lastMsg.role === 'agent') {
+                    agentText.innerText = lastMsg.content;
+                    liveTerminal.scrollTop = liveTerminal.scrollHeight;
+                }
+            }
+        });
+
+        startBtn.addEventListener('click', startAudit);
+        stopBtn.addEventListener('click', stopAudit);
+
+        async function startAudit() {
+            log("CONNECTING...", "#888");
+            startBtn.disabled = true;
+            console.log("LEAD:", nameInput.value, emailInput.value, phoneInput.value);
+
+            try {
+                const response = await fetch(REGISTER_CALL_URL);
+                if (!response.ok) throw new Error("Backend Failed");
+                const data = await response.json();
+                
+                log("AWAITING AUDIO STREAM...", "#888");
+                await retellWebClient.startCall({
+                    accessToken: data.access_token,
+                });
+            } catch (err) {
+                console.error(err);
+                log("FAIL: " + err.message, "#ff3333");
+                startBtn.disabled = false;
+                startBtn.innerText = "RETRY SEQUENCE";
+            }
+        }
+
+        function stopAudit() { retellWebClient.stopCall(); }
+        function log(msg, color) { statusText.innerText = ">> " + msg; statusText.style.color = color; }
+    </script>
+</body>
+</html>
