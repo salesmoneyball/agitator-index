@@ -95,7 +95,7 @@
             font-family: 'Courier New', monospace;
             font-size: 0.8rem;
             color: #444;
-            height: 20px;
+            min-height: 20px;
         }
     </style>
 </head>
@@ -103,108 +103,3 @@
 
     <div class="interface-box">
         <h1>Agitator Index™</h1>
-        <div class="sub-text">VOICE SIMULATION PROTOCOL V2.4</div>
-
-        <div class="status-bar"><div class="status-fill" id="visualizer"></div></div>
-
-        <button id="start-btn" onclick="startAudit()">INITIATE SEQUENCE</button>
-        <button id="stop-btn" class="stop-btn" onclick="stopAudit()">TERMINATE SESSION</button>
-
-        <div class="log-output" id="status-text">SYSTEM READY...</div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/dist/index.umd.js"></script>
-    <script>
-        // 1. Define variables globally first
-        let retellWebClient;
-        const startBtn = document.getElementById('start-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const statusText = document.getElementById('status-text');
-        const visualizer = document.getElementById('visualizer');
-        const REGISTER_CALL_URL = "/api/register-call"; 
-
-        // 2. Wait for window to load before initializing Retell
-        window.onload = function() {
-            try {
-                if (typeof RetellWebClient === 'undefined') {
-                    throw new Error("Retell SDK failed to load.");
-                }
-                retellWebClient = new RetellWebClient();
-                setupListeners();
-                console.log("System Initialized Successfully");
-            } catch (err) {
-                console.error(err);
-                statusText.innerText = "ERROR: SDK LOAD FAILED";
-                statusText.style.color = "red";
-            }
-        };
-
-        function setupListeners() {
-            retellWebClient.on("call_started", () => {
-                statusText.innerText = ">> RECORDING ACTIVE";
-                statusText.style.color = "#00ff41";
-                startBtn.style.display = 'none';
-                stopBtn.style.display = 'inline-block';
-                visualizer.style.width = "100%";
-            });
-
-            retellWebClient.on("call_ended", () => {
-                statusText.innerText = ">> UPLOADING DATA...";
-                statusText.style.color = "#666";
-                visualizer.style.width = "0%";
-                setTimeout(() => { location.reload(); }, 2000);
-            });
-            
-            // Debugging listener
-            retellWebClient.on("error", (error) => {
-                console.error("Retell Error:", error);
-                statusText.innerText = "CONNECTION ERROR";
-                statusText.style.color = "red";
-                startBtn.disabled = false;
-                startBtn.innerText = "RETRY SEQUENCE";
-            });
-        }
-
-        async function startAudit() {
-            // Safety check
-            if (!retellWebClient) {
-                alert("System not ready. Please refresh.");
-                return;
-            }
-
-            startBtn.innerText = "CONNECTING...";
-            startBtn.disabled = true;
-
-            try {
-                // Call the Vercel Backend
-                const response = await fetch(REGISTER_CALL_URL);
-                
-                if (!response.ok) {
-                    throw new Error("Backend Connection Failed");
-                }
-                
-                const data = await response.json();
-
-                // Start the Voice Stream
-                await retellWebClient.startCall({
-                    accessToken: data.access_token,
-                });
-
-            } catch (err) {
-                console.error(err);
-                statusText.innerText = ">> ERROR: CHECK CONSOLE";
-                statusText.style.color = "#ff3333";
-                startBtn.disabled = false;
-                startBtn.innerText = "INITIATE SEQUENCE";
-                
-                // Show the actual error to the user for debugging
-                alert("Connection Error: " + err.message);
-            }
-        }
-
-        function stopAudit() {
-            if(retellWebClient) retellWebClient.stopCall();
-        }
-    </script>
-</body>
-</html>
