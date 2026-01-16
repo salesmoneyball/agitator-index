@@ -3,10 +3,13 @@ export default async function handler(req, res) {
   const API_KEY = process.env.RETELL_API_KEY; 
 
   if (!AGENT_ID || !API_KEY) {
-    return res.status(500).json({ error: "Missing API Keys in Vercel Settings" });
+    return res.status(500).json({ error: "Missing API Keys" });
   }
 
   try {
+    // 1. Unpack the data from the Frontend
+    const { name, email, phone } = req.body || {};
+
     const response = await fetch("https://api.retellai.com/v2/create-web-call", {
       method: "POST",
       headers: {
@@ -15,6 +18,16 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         agent_id: AGENT_ID,
+        // 2. Attach it to Retell as Metadata
+        metadata: {
+            "user_name": name || "Anonymous",
+            "user_email": email || "Not Provided",
+            "user_phone": phone || "Not Provided"
+        },
+        // Optional: Inject name into the LLM context so the agent knows who they are talking to
+        retell_llm_dynamic_variables: {
+            "user_name": name || "Candidate"
+        }
       }),
     });
 
