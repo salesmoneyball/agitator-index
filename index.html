@@ -6,12 +6,12 @@
     <title>AGITATOR INDEX | TERMINAL</title>
     <style>
         /* ========================================= */
-        /* 1. GLOBAL STYLES & BACKGROUND             */
+        /* 1. GLOBAL STYLES                          */
         /* ========================================= */
         body {
             background-color: #080808;
-            color: #fff;
-            font-family: 'Courier New', monospace;
+            color: #888;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -51,58 +51,73 @@
             box-shadow: 0 0 60px rgba(0,0,0,0.8);
         }
 
-        .gate-title { font-size: 1.8rem; margin-bottom: 10px; letter-spacing: -1px; color: #fff; }
-        .gate-sub { color: #666; font-size: 0.9rem; margin-bottom: 40px; }
+        .gate-title { font-family: 'Courier New', monospace; font-size: 1.8rem; margin-bottom: 10px; letter-spacing: -1px; color: #fff; }
+        .gate-sub { color: #666; font-size: 0.9rem; margin-bottom: 40px; font-family: 'Courier New', monospace; }
 
         .gate-btn {
             background: #00ff41; color: #000; border: 1px solid #00ff41;
-            padding: 15px; width: 100%; font-family: inherit; font-weight: bold;
-            font-size: 1rem; cursor: pointer; text-transform: uppercase;
+            padding: 15px; width: 100%; font-family: 'Courier New', monospace;
+            font-weight: bold; font-size: 1rem; cursor: pointer; text-transform: uppercase;
             margin-bottom: 15px; transition: all 0.2s;
         }
         .gate-btn:hover { background: #fff; box-shadow: 0 0 20px rgba(0,255,65,0.4); }
 
         .gate-btn-secondary {
             background: transparent; color: #00ff41; border: 1px solid #00ff41;
-            padding: 15px; width: 100%; font-family: inherit; font-weight: bold;
-            font-size: 1rem; cursor: pointer; text-transform: uppercase;
+            padding: 15px; width: 100%; font-family: 'Courier New', monospace;
+            font-weight: bold; font-size: 1rem; cursor: pointer; text-transform: uppercase;
             transition: all 0.2s;
         }
         .gate-btn-secondary:hover { background: rgba(0, 255, 65, 0.1); }
 
         .gate-input {
             width: 100%; background: #111; border: 1px solid #333; color: #fff;
-            padding: 15px; font-family: inherit; font-size: 1.2rem; text-align: center;
-            outline: none; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;
+            padding: 15px; font-family: 'Courier New', monospace; font-size: 1.2rem;
+            text-align: center; outline: none; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;
         }
         .gate-input:focus { border-color: #00ff41; }
 
-        .gate-back { margin-top: 20px; font-size: 0.8rem; color: #666; cursor: pointer; text-decoration: underline; }
-        .gate-error { color: #ff3333; margin-top: 10px; display: none; }
+        .gate-back { margin-top: 20px; font-size: 0.8rem; color: #666; cursor: pointer; text-decoration: underline; font-family: 'Courier New', monospace; }
+        .gate-error { color: #ff3333; margin-top: 10px; display: none; font-family: 'Courier New', monospace; }
         #view-request, #view-code { display: none; }
 
 
         /* ========================================= */
-        /* 3. MAIN APP - FORM SECTION                */
+        /* 3. MAIN INTERFACE BOX                     */
         /* ========================================= */
-        #app-container { width: 100%; max-width: 500px; position: relative; z-index: 10; }
-
-        .form-box {
+        .interface-box {
+            display: none; /* Hidden until unlocked */
+            width: 100%; max-width: 500px;
             background: #000; border: 1px solid #333; padding: 40px;
             box-shadow: 0 0 50px rgba(0,0,0,0.9); text-align: center;
+            position: relative; z-index: 10;
         }
 
-        h1 { font-size: 1.5rem; text-transform: uppercase; letter-spacing: -1px; margin-bottom: 10px; color: #ccc; }
-        .sub-text { font-size: 0.9rem; color: #666; margin-bottom: 30px; }
+        h1 {
+            font-family: 'Courier New', monospace; color: #ccc;
+            font-size: 1.5rem; text-transform: uppercase;
+            letter-spacing: -1px; margin-bottom: 10px;
+        }
 
+        .sub-text { font-size: 0.9rem; color: #666; margin-bottom: 30px; font-family: 'Courier New', monospace; }
+
+
+        /* ========================================= */
+        /* 4. FORM STYLING (RESTORED)                */
+        /* ========================================= */
         .input-group { margin-bottom: 20px; text-align: left; }
-        label { font-size: 0.7rem; color: #444; display: block; margin-bottom: 5px; text-transform: uppercase; }
+
+        label {
+            font-family: 'Courier New', monospace; font-size: 0.7rem;
+            color: #444; display: block; margin-bottom: 5px; text-transform: uppercase;
+        }
 
         .app-input {
             width: 100%; background: #0a0a0a; border: 1px solid #333; color: #00ff41;
-            font-family: inherit; padding: 12px; font-size: 1rem; outline: none;
-            box-sizing: border-box; transition: border 0.2s;
+            font-family: 'Courier New', monospace; padding: 12px; font-size: 1rem;
+            outline: none; box-sizing: border-box; transition: border 0.2s;
         }
+
         .app-input:focus { border-color: #00ff41; background: #000; }
         
         #access-code.valid-code { color: #00ff41; border-color: #00ff41; }
@@ -110,7 +125,7 @@
 
         .start-btn {
             background: #1a1a1a; color: #444; border: 1px solid #1a1a1a;
-            padding: 15px 30px; font-family: inherit; font-weight: bold;
+            padding: 15px 30px; font-family: 'Courier New', monospace; font-weight: bold;
             font-size: 1rem; cursor: not-allowed; text-transform: uppercase;
             width: 100%; transition: all 0.3s; pointer-events: none;
         }
@@ -122,19 +137,16 @@
 
 
         /* ========================================= */
-        /* 4. MAIN APP - CALL IN PROGRESS SECTION    */
+        /* 5. CALL UI (ORB + TERMINAL)               */
         /* ========================================= */
-        #call-section {
-            display: none; /* Hidden initially */
-            text-align: center; padding: 40px 0;
-        }
+        #call-section { display: none; text-align: center; }
 
         /* Glowing Voice Orb */
         .voice-orb {
-            width: 140px; height: 140px; background: #000; border-radius: 50%;
-            border: 3px solid #00ff41; margin: 0 auto 50px auto;
+            width: 100px; height: 100px; background: #000; border-radius: 50%;
+            border: 2px solid #00ff41; margin: 0 auto 30px auto;
             display: flex; align-items: center; justify-content: center;
-            font-size: 60px; color: #00ff41;
+            font-size: 40px; color: #00ff41;
             box-shadow: 0 0 40px rgba(0,255,65,0.4), inset 0 0 20px rgba(0,255,65,0.2);
             animation: pulse-orb 2s infinite ease-in-out;
         }
@@ -144,32 +156,39 @@
             100% { transform: scale(1); box-shadow: 0 0 40px rgba(0,255,65,0.4), inset 0 0 20px rgba(0,255,65,0.2); }
         }
 
-        /* Call Status Text */
-        .call-status {
-            font-size: 2.2rem; font-weight: bold; color: #fff;
-            text-transform: uppercase; margin-bottom: 25px; letter-spacing: 3px;
-            text-shadow: 0 0 10px rgba(0,255,65,0.5);
+        .protocol-text {
+            font-family: 'Courier New', monospace; color: #fff; font-size: 0.9rem;
+            margin-bottom: 20px; line-height: 1.6; border: 1px solid #333; padding: 15px;
+        }
+        .highlight { color: #00ff41; font-weight: bold; }
+
+        /* Restored Terminal */
+        .terminal-window {
+            background: #050505; border: 1px solid #333; padding: 15px;
+            margin-top: 20px; height: 120px; overflow-y: auto;
+            text-align: left; font-family: 'Courier New', monospace;
+            border-left: 2px solid #00ff41;
+            margin-bottom: 20px;
         }
 
-        /* Instructions */
-        .call-instructions {
-            font-size: 1rem; color: #888; line-height: 1.6;
-            max-width: 400px; margin: 0 auto 50px auto;
+        .terminal-label { font-size: 0.6rem; color: #666; display: block; margin-bottom: 5px; }
+        #agent-text { color: #00ff41; font-size: 0.85rem; line-height: 1.4; }
+        .cursor {
+            display: inline-block; width: 6px; height: 12px; background: #00ff41;
+            animation: blink 1s infinite; vertical-align: middle; margin-left: 5px;
         }
-        .highlight { color: #fff; font-weight: bold; }
+        @keyframes blink { 50% { opacity: 0; } }
 
         /* Stop Button */
         .stop-btn-modern {
             background: transparent; border: 2px solid #ff3333; color: #ff3333;
-            padding: 15px 40px; font-family: inherit; font-weight: bold;
+            padding: 15px 40px; font-family: 'Courier New', monospace; font-weight: bold;
             font-size: 1rem; cursor: pointer; text-transform: uppercase;
-            letter-spacing: 1px; transition: all 0.3s;
+            width: 100%; transition: all 0.3s;
         }
         .stop-btn-modern:hover {
             background: #ff3333; color: #000; box-shadow: 0 0 30px rgba(255, 51, 51, 0.6);
         }
-
-        .session-info { margin-top: 40px; font-size: 0.7rem; color: #444; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -200,12 +219,12 @@
     </div>
 
 
-    <div id="app-container">
+    <div class="interface-box" id="app-interface">
         
-        <div id="form-section" class="form-box">
-            <h1>Agitator Index™</h1>
-            <div class="sub-text">INITIALIZE VOICE PROTOCOL</div>
+        <h1>Agitator Index™</h1>
+        <div class="sub-text">VOICE SIMULATION PROTOCOL V3.2</div>
 
+        <div id="form-section">
             <div class="input-group">
                 <label>ACCESS CODE</label>
                 <input type="password" id="access-code" class="app-input" placeholder="Requires Verification" readonly>
@@ -226,21 +245,25 @@
             <button id="start-btn" class="start-btn">SYSTEM LOCKED</button>
         </div>
 
-
         <div id="call-section">
             <div class="voice-orb" id="voice-orb">🎙️</div>
-            <div class="call-status" id="call-status-text">CALL IN PROGRESS...</div>
-            <div class="call-instructions">
-                Your objective: Disqualify the prospect or secure a next step.<br>
-                Do not pitch.<br>
-                <span class="highlight">Good luck.</span>
+            
+            <div class="protocol-text">
+                PROTOCOL ACTIVE:<br>
+                <span class="highlight">3x WARM UP QUESTIONS</span><br>
+                <span class="highlight">10x TRADEOFF SCENARIOS</span><br><br>
+                Provide justification for every tradeoff.
             </div>
+
+            <div class="terminal-window" id="live-terminal">
+                <span class="terminal-label">>> LIVE TRANSCRIPT</span>
+                <span id="agent-text">CONNECTING...</span><span class="cursor"></span>
+            </div>
+
             <button id="stop-btn" class="stop-btn-modern">TERMINATE UPLINK</button>
-            <div class="session-info">RECORDING ACTIVE // SESSION ID: <span id="session-id">...</span></div>
         </div>
 
     </div>
-
 
     <script>
         // --- GATEKEEPER LOGIC ---
@@ -284,11 +307,14 @@
                 gateOverlay.style.opacity = '0';
                 setTimeout(() => { gateOverlay.style.display = 'none'; }, 500);
                 
-                // Auto-fill and validate form code
+                // SHOW APP
+                document.getElementById('app-interface').style.display = 'block';
+
+                // AUTO-FILL CODE
                 const appInput = document.getElementById('access-code');
                 appInput.value = code;
                 appInput.classList.add('valid-code');
-                checkInputs(); // Trigger validation
+                checkInputs();
                 
             } else {
                 document.getElementById('gate-error').style.display = 'block';
@@ -312,10 +338,12 @@
         const nameInput = document.getElementById('user-name');
         const emailInput = document.getElementById('user-email');
         const phoneInput = document.getElementById('user-phone');
-        const callStatusText = document.getElementById('call-status-text');
+        
         const voiceOrb = document.getElementById('voice-orb');
+        const liveTerminal = document.getElementById('live-terminal');
+        const agentText = document.getElementById('agent-text');
 
-        // Make checkInputs globally accessible for the gatekeeper script
+        // VALIDATION
         window.checkInputs = function() {
             if(verifiedCode && nameInput.value.length > 2 && emailInput.value.includes('@') && phoneInput.value.length > 5) {
                 startBtn.classList.add('ready');
@@ -330,19 +358,16 @@
         emailInput.addEventListener('input', checkInputs);
         phoneInput.addEventListener('input', checkInputs);
 
-        // Retell Events
+        // RETELL EVENTS
         retellWebClient.on("call_started", () => {
-            // Transition to Call UI
             formSection.style.display = 'none';
             callSection.style.display = 'block';
-            document.getElementById('session-id').innerText = "SMB-" + Math.floor(1000 + Math.random() * 9000);
+            agentText.innerText = "UPLINK ESTABLISHED. LISTENING...";
         });
 
         retellWebClient.on("call_ended", () => {
-            // Transition to Ended State
-            callStatusText.innerText = "LINK SEVERED.";
-            callStatusText.style.color = "#ff3333";
-            callStatusText.style.textShadow = "none";
+            agentText.innerText = "LINK SEVERED.";
+            agentText.style.color = "#ff3333";
             voiceOrb.style.borderColor = "#ff3333";
             voiceOrb.style.color = "#ff3333";
             voiceOrb.style.boxShadow = "none";
@@ -351,13 +376,22 @@
             setTimeout(() => { location.reload(); }, 3500);
         });
 
+        retellWebClient.on("update", (update) => {
+            if (update.transcript && update.transcript.length > 0) {
+                const lastMsg = update.transcript[update.transcript.length - 1];
+                // Show both agent and user text in the terminal
+                agentText.innerHTML = `<span style="color:#666">[${lastMsg.role}]:</span> ${lastMsg.content}`;
+                liveTerminal.scrollTop = liveTerminal.scrollHeight;
+            }
+        });
+
         retellWebClient.on("error", (error) => {
             console.error(error);
             alert("Connection Error: " + error.message);
             retellWebClient.stopCall();
         });
 
-        // Button Actions
+        // ACTIONS
         startBtn.addEventListener('click', async () => {
             startBtn.innerText = "CONNECTING...";
             startBtn.classList.remove('ready');
@@ -380,7 +414,7 @@
             } catch (err) {
                 console.error(err);
                 alert("Failed to start call: " + err.message);
-                checkInputs(); // Reset button state
+                checkInputs();
             }
         });
 
