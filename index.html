@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agitator Index | Classified Access</title>
+    <title>Agitator Index | Secure Login</title>
     <style>
         body {
             background-color: #000;
@@ -49,7 +49,8 @@
             display: flex;
             justify-content: space-between;
         }
-        .status-green { color: #00FF41; }
+        .status-green { color: #00FF41; animation: blink 2s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
 
         h1 {
             font-size: 32px;
@@ -67,14 +68,14 @@
             margin-bottom: 40px;
         }
 
-        /* Access Form Styles */
-        .access-form {
+        /* Forms */
+        .form-wrapper {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
         
-        input[type="email"] {
+        input {
             background: #000;
             border: 1px solid #333;
             padding: 20px;
@@ -84,13 +85,15 @@
             text-align: center;
             transition: border 0.3s;
             outline: none;
+            width: 100%;
+            box-sizing: border-box;
         }
-        input[type="email"]:focus {
+        input:focus {
             border-color: #00FF41;
             box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
         }
         
-        button {
+        .main-btn {
             background: #00FF41;
             color: #000;
             border: none;
@@ -102,22 +105,37 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             transition: all 0.2s;
+            width: 100%;
         }
-        button:hover {
+        .main-btn:hover {
             background: #fff;
             box-shadow: 0 0 30px rgba(0, 255, 65, 0.5);
         }
 
-        .secure-note {
-            margin-top: 30px;
-            font-size: 10px;
-            color: #444;
-            text-transform: uppercase;
+        /* Toggle Link */
+        .toggle-link {
+            display: block;
+            margin-top: 20px;
+            color: #666;
+            font-size: 12px;
+            text-decoration: none;
+            cursor: pointer;
+            border: 1px dashed #333;
+            padding: 10px;
         }
-        
-        /* Success Message State */
+        .toggle-link:hover { color: #00FF41; border-color: #00FF41; }
+
+        /* Hidden Sections */
+        #code-section, #success-message, #error-message { display: none; }
+
+        #error-message {
+            color: #FF3333;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
         #success-message {
-            display: none;
             padding: 20px;
             border: 1px solid #00FF41;
             background: rgba(0, 255, 65, 0.1);
@@ -125,17 +143,14 @@
             font-weight: bold;
         }
 
-        /* Scanning Line Animation */
+        .secure-note { margin-top: 30px; font-size: 10px; color: #444; text-transform: uppercase; }
+        
+        /* Scan Line */
         .scan-line {
-            width: 100%;
-            height: 2px;
-            background: #00FF41;
-            position: absolute;
-            top: 0;
-            left: 0;
+            width: 100%; height: 2px; background: #00FF41;
+            position: absolute; top: 0; left: 0;
             animation: scan 3s linear infinite;
-            opacity: 0.3;
-            pointer-events: none;
+            opacity: 0.3; pointer-events: none;
         }
         @keyframes scan {
             0% { top: 0%; opacity: 0; }
@@ -155,22 +170,36 @@
             <span class="status-green">● SYSTEM ONLINE</span>
         </div>
         
-        <div id="main-content">
+        <div id="ui-content">
             <h1>The Flight Simulator<br>For Enterprise Sales.</h1>
             <p class="subhead">
-                This is not a quiz. It is a live Voice AI simulation testing negotiation, gatekeeping, and disqualification reflexes.
+                A live Voice AI simulation testing negotiation, gatekeeping, and disqualification reflexes.
             </p>
 
-            <form id="accessForm" class="access-form" action="#" method="POST">
-                <input type="email" id="email" name="email" placeholder="ENTER WORK EMAIL" required>
-                <button type="submit" id="submitBtn">REQUEST ACCESS CODES</button>
-            </form>
+            <div id="request-section">
+                <form class="form-wrapper" onsubmit="handleRequest(event)">
+                    <input type="email" id="req-email" placeholder="ENTER WORK EMAIL" required>
+                    <button type="submit" class="main-btn">REQUEST ACCESS</button>
+                </form>
+                <div class="toggle-link" onclick="switchMode('code')">
+                    [ ALREADY HAVE A CODE? ENTER TERMINAL ]
+                </div>
             </div>
 
+            <div id="code-section">
+                <form class="form-wrapper" onsubmit="handleCode(event)">
+                    <input type="text" id="access-code" placeholder="ENTER CLEARANCE CODE" style="text-transform:uppercase; letter-spacing:2px;" required>
+                    <button type="submit" class="main-btn" style="background:#fff; color:#000;">VERIFY CODE</button>
+                </form>
+                <div id="error-message">❌ ACCESS DENIED: INVALID CODE</div>
+                <div class="toggle-link" onclick="switchMode('request')">
+                    [ ← BACK TO REQUEST FORM ]
+                </div>
+            </div>
+        </div>
+
         <div id="success-message">
-            ACCESS GRANTED.<br><br>
-            You have been added to the priority queue.<br>
-            Watch your inbox for dispatch codes.
+            ACCESS GRANTED.<br>Initializing Simulation Environment...
         </div>
 
         <div class="secure-note">
@@ -179,26 +208,58 @@
     </div>
 
     <script>
-        document.getElementById('accessForm').addEventListener('submit', function(e) {
-            // Remove this line if you are using a real backend action like Formspree
-            e.preventDefault(); 
-            
-            var btn = document.getElementById('submitBtn');
-            var originalText = btn.innerText;
+        // --- CONFIGURATION ---
+        // 1. Define your valid codes here (Uppercased)
+        const validCodes = ['AGITATOR', 'VIP-ACCESS', 'BETA2026', 'MONEYBALL']; 
+        
+        // 2. Define where they go if the code is correct
+        const successUrl = "https://salesmoneyball.com/dojo"; // REPLACE THIS with your actual simulation URL
 
-            // Simulate Loading
-            btn.innerText = "AUTHENTICATING...";
-            btn.style.opacity = "0.7";
-            
-            setTimeout(function() {
-                // Hide Form, Show Success
-                document.getElementById('main-content').style.display = 'none';
+        function switchMode(mode) {
+            document.getElementById('error-message').style.display = 'none';
+            if(mode === 'code') {
+                document.getElementById('request-section').style.display = 'none';
+                document.getElementById('code-section').style.display = 'block';
+                document.getElementById('access-code').focus();
+            } else {
+                document.getElementById('code-section').style.display = 'none';
+                document.getElementById('request-section').style.display = 'block';
+            }
+        }
+
+        function handleRequest(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerText = "ADDING TO QUEUE...";
+            setTimeout(() => {
+                alert("You have been added to the priority waitlist. Check your email.");
+                btn.innerText = "REQUEST SENT";
+            }, 1000);
+            // Add your Formspree/Mailchimp logic here
+        }
+
+        function handleCode(e) {
+            e.preventDefault();
+            const input = document.getElementById('access-code');
+            const error = document.getElementById('error-message');
+            const code = input.value.trim().toUpperCase();
+
+            if (validCodes.includes(code)) {
+                // Success
+                document.getElementById('ui-content').style.display = 'none';
                 document.getElementById('success-message').style.display = 'block';
-                
-                // If you are actually submitting data via AJAX, put that logic here
-                console.log("Email captured: " + document.getElementById('email').value);
-            }, 1500);
-        });
+                setTimeout(() => {
+                    window.location.href = successUrl;
+                }, 1500);
+            } else {
+                // Fail
+                input.style.borderColor = '#FF3333';
+                error.style.display = 'block';
+                input.value = '';
+                input.placeholder = "TRY AGAIN";
+                setTimeout(() => { input.style.borderColor = '#333'; }, 2000);
+            }
+        }
     </script>
 
 </body>
