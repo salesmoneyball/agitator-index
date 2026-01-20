@@ -6,12 +6,12 @@
     <title>AGITATOR INDEX | TERMINAL</title>
     <style>
         /* ========================================= */
-        /* 1. GLOBAL STYLES                          */
+        /* 1. GLOBAL STYLES & BACKGROUND             */
         /* ========================================= */
         body {
             background-color: #080808;
-            color: #888;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #fff;
+            font-family: 'Courier New', monospace;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -19,181 +19,165 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
-            overflow: hidden; /* Prevent scroll bars during transitions */
+            overflow: hidden;
+        }
+
+        /* Subtle grid background */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
         }
 
         /* ========================================= */
-        /* 2. GATEKEEPER STYLES (THE LOCK SCREEN)    */
+        /* 2. GATEKEEPER OVERLAY                     */
         /* ========================================= */
         #gatekeeper-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #080808;
-            z-index: 9999;
+            background: #080808; z-index: 9999;
             display: flex; align-items: center; justify-content: center;
-            flex-direction: column;
+            flex-direction: column; transition: opacity 0.5s;
         }
 
         .gate-box {
-            width: 100%; max-width: 450px;
-            background: #000; border: 1px solid #333; padding: 40px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.9); text-align: center;
+            width: 100%; max-width: 450px; background: #000;
+            border: 1px solid #333; padding: 40px; text-align: center;
+            box-shadow: 0 0 60px rgba(0,0,0,0.8);
         }
 
-        .gate-title {
-            font-family: 'Courier New', monospace; color: #fff;
-            font-size: 1.8rem; margin-bottom: 10px; letter-spacing: -1px;
-        }
-
+        .gate-title { font-size: 1.8rem; margin-bottom: 10px; letter-spacing: -1px; color: #fff; }
         .gate-sub { color: #666; font-size: 0.9rem; margin-bottom: 40px; }
 
         .gate-btn {
             background: #00ff41; color: #000; border: 1px solid #00ff41;
-            padding: 15px; width: 100%; font-family: 'Courier New', monospace;
-            font-weight: bold; font-size: 1rem; cursor: pointer;
-            text-transform: uppercase; margin-bottom: 15px; transition: all 0.2s;
+            padding: 15px; width: 100%; font-family: inherit; font-weight: bold;
+            font-size: 1rem; cursor: pointer; text-transform: uppercase;
+            margin-bottom: 15px; transition: all 0.2s;
         }
         .gate-btn:hover { background: #fff; box-shadow: 0 0 20px rgba(0,255,65,0.4); }
 
         .gate-btn-secondary {
             background: transparent; color: #00ff41; border: 1px solid #00ff41;
-            padding: 15px; width: 100%; font-family: 'Courier New', monospace;
-            font-weight: bold; font-size: 1rem; cursor: pointer;
-            text-transform: uppercase; transition: all 0.2s;
+            padding: 15px; width: 100%; font-family: inherit; font-weight: bold;
+            font-size: 1rem; cursor: pointer; text-transform: uppercase;
+            transition: all 0.2s;
         }
         .gate-btn-secondary:hover { background: rgba(0, 255, 65, 0.1); }
 
         .gate-input {
             width: 100%; background: #111; border: 1px solid #333; color: #fff;
-            padding: 15px; font-family: 'Courier New', monospace; font-size: 1.2rem;
-            text-align: center; outline: none; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;
+            padding: 15px; font-family: inherit; font-size: 1.2rem; text-align: center;
+            outline: none; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;
         }
         .gate-input:focus { border-color: #00ff41; }
 
         .gate-back { margin-top: 20px; font-size: 0.8rem; color: #666; cursor: pointer; text-decoration: underline; }
-        .gate-error { color: #ff3333; font-family: 'Courier New', monospace; margin-top: 10px; display: none; }
-
-        /* Hide specific gate views initially */
+        .gate-error { color: #ff3333; margin-top: 10px; display: none; }
         #view-request, #view-code { display: none; }
 
 
         /* ========================================= */
-        /* 3. MAIN APP STYLES (HIDDEN INITIALLY)     */
+        /* 3. MAIN APP - FORM SECTION                */
         /* ========================================= */
-        .interface-box {
-            display: none; /* Hidden until unlocked */
-            width: 100%;
-            max-width: 500px;
-            background: #000;
-            border: 1px solid #333;
-            padding: 40px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.9);
-            text-align: center;
-            position: relative;
-            z-index: 10;
+        #app-container { width: 100%; max-width: 500px; position: relative; z-index: 10; }
+
+        .form-box {
+            background: #000; border: 1px solid #333; padding: 40px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9); text-align: center;
         }
 
-        h1 {
-            font-family: 'Courier New', monospace;
-            color: #ccc;
-            font-size: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: -1px;
-            margin-bottom: 10px;
-        }
-
+        h1 { font-size: 1.5rem; text-transform: uppercase; letter-spacing: -1px; margin-bottom: 10px; color: #ccc; }
         .sub-text { font-size: 0.9rem; color: #666; margin-bottom: 30px; }
 
-        /* INPUTS */
         .input-group { margin-bottom: 20px; text-align: left; }
+        label { font-size: 0.7rem; color: #444; display: block; margin-bottom: 5px; text-transform: uppercase; }
 
-        label {
-            font-family: 'Courier New', monospace;
-            font-size: 0.7rem;
-            color: #444;
-            display: block;
-            margin-bottom: 5px;
-            text-transform: uppercase;
+        .app-input {
+            width: 100%; background: #0a0a0a; border: 1px solid #333; color: #00ff41;
+            font-family: inherit; padding: 12px; font-size: 1rem; outline: none;
+            box-sizing: border-box; transition: border 0.2s;
         }
-
-        input {
-            width: 100%;
-            background: #0a0a0a;
-            border: 1px solid #333;
-            color: #00ff41;
-            font-family: 'Courier New', monospace;
-            padding: 12px;
-            font-size: 1rem;
-            outline: none;
-            box-sizing: border-box; 
-            transition: border 0.2s;
-        }
-
-        input:focus { border-color: #00ff41; background: #000; }
+        .app-input:focus { border-color: #00ff41; background: #000; }
         
-        /* PASSWORD FIELD SPECIFIC */
-        #access-code { color: #ff3333; border-color: #ff3333; }
         #access-code.valid-code { color: #00ff41; border-color: #00ff41; }
+        #access-code.invalid-code { color: #ff3333; border-color: #ff3333; }
 
-        /* VISUALIZER */
-        .status-bar {
-            height: 4px; width: 100%; background: #111;
-            margin: 30px 0; position: relative; overflow: hidden;
+        .start-btn {
+            background: #1a1a1a; color: #444; border: 1px solid #1a1a1a;
+            padding: 15px 30px; font-family: inherit; font-weight: bold;
+            font-size: 1rem; cursor: not-allowed; text-transform: uppercase;
+            width: 100%; transition: all 0.3s; pointer-events: none;
         }
-        
-        .status-fill {
-            height: 100%; width: 0%; background: #00ff41;
-            transition: width 0.2s; box-shadow: 0 0 10px #00ff41;
+        .start-btn.ready {
+            background: #00ff41; color: #000; border-color: #00ff41;
+            cursor: pointer; pointer-events: auto;
         }
+        .start-btn.ready:hover { background: #fff; box-shadow: 0 0 30px rgba(0,255,65,0.5); }
 
-        /* LIVE TERMINAL */
-        .terminal-window {
-            background: #050505; border: 1px solid #333; padding: 15px;
-            margin-top: 25px; height: 80px; overflow-y: auto;
-            text-align: left; font-family: 'Courier New', monospace;
-            display: none; border-left: 2px solid #00ff41;
-        }
 
-        .terminal-label { font-size: 0.6rem; color: #666; display: block; margin-bottom: 5px; }
-        #agent-text { color: #00ff41; font-size: 0.85rem; line-height: 1.4; }
-        .cursor {
-            display: inline-block; width: 6px; height: 12px; background: #00ff41;
-            animation: blink 1s infinite; vertical-align: middle; margin-left: 5px;
-        }
-        @keyframes blink { 50% { opacity: 0; } }
-
-        /* APP BUTTONS */
-        .app-btn {
-            background: #00ff41; color: #000; border: 1px solid #00ff41;
-            padding: 15px 30px; font-family: 'Courier New', monospace;
-            font-weight: bold; font-size: 1rem; cursor: pointer;
-            text-transform: uppercase; width: 100%; transition: all 0.2s;
+        /* ========================================= */
+        /* 4. MAIN APP - CALL IN PROGRESS SECTION    */
+        /* ========================================= */
+        #call-section {
+            display: none; /* Hidden initially */
+            text-align: center; padding: 40px 0;
         }
 
-        .app-btn:hover { background: #000; color: #00ff41; }
-        
-        .app-btn:disabled {
-            background: #1a1a1a; border-color: #1a1a1a; color: #444;
-            cursor: not-allowed; pointer-events: none;
+        /* Glowing Voice Orb */
+        .voice-orb {
+            width: 140px; height: 140px; background: #000; border-radius: 50%;
+            border: 3px solid #00ff41; margin: 0 auto 50px auto;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 60px; color: #00ff41;
+            box-shadow: 0 0 40px rgba(0,255,65,0.4), inset 0 0 20px rgba(0,255,65,0.2);
+            animation: pulse-orb 2s infinite ease-in-out;
+        }
+        @keyframes pulse-orb {
+            0% { transform: scale(1); box-shadow: 0 0 40px rgba(0,255,65,0.4), inset 0 0 20px rgba(0,255,65,0.2); }
+            50% { transform: scale(1.05); box-shadow: 0 0 80px rgba(0,255,65,0.6), inset 0 0 40px rgba(0,255,65,0.4); }
+            100% { transform: scale(1); box-shadow: 0 0 40px rgba(0,255,65,0.4), inset 0 0 20px rgba(0,255,65,0.2); }
         }
 
-        .stop-btn {
-            background: transparent; border-color: #ff3333; color: #ff3333;
-            margin-top: 10px; display: none;
+        /* Call Status Text */
+        .call-status {
+            font-size: 2.2rem; font-weight: bold; color: #fff;
+            text-transform: uppercase; margin-bottom: 25px; letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(0,255,65,0.5);
         }
-        .stop-btn:hover { background: #ff3333; color: #000; }
 
-        .log-output {
-            margin-top: 20px; font-family: 'Courier New', monospace;
-            font-size: 0.8rem; color: #444; min-height: 20px;
+        /* Instructions */
+        .call-instructions {
+            font-size: 1rem; color: #888; line-height: 1.6;
+            max-width: 400px; margin: 0 auto 50px auto;
         }
+        .highlight { color: #fff; font-weight: bold; }
+
+        /* Stop Button */
+        .stop-btn-modern {
+            background: transparent; border: 2px solid #ff3333; color: #ff3333;
+            padding: 15px 40px; font-family: inherit; font-weight: bold;
+            font-size: 1rem; cursor: pointer; text-transform: uppercase;
+            letter-spacing: 1px; transition: all 0.3s;
+        }
+        .stop-btn-modern:hover {
+            background: #ff3333; color: #000; box-shadow: 0 0 30px rgba(255, 51, 51, 0.6);
+        }
+
+        .session-info { margin-top: 40px; font-size: 0.7rem; color: #444; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
     <div id="gatekeeper-overlay">
         <div class="gate-box">
-            <h1 class="gate-title">Agitator Index</h1>
-            <p class="gate-sub">SECURE SIMULATION TERMINAL</p>
+            <div class="gate-title">AGITATOR INDEX</div>
+            <p class="gate-sub">SECURE SIMULATION TERMINAL V3.3</p>
 
             <div id="view-home">
                 <button class="gate-btn" onclick="switchGate('request')">REQUEST ACCESS</button>
@@ -215,45 +199,53 @@
         </div>
     </div>
 
-    <div class="interface-box" id="app-interface">
-        <h1>Agitator Index™</h1>
-        <div class="sub-text">VOICE SIMULATION PROTOCOL V3.2</div>
 
-        <div id="credentials-form">
+    <div id="app-container">
+        
+        <div id="form-section" class="form-box">
+            <h1>Agitator Index™</h1>
+            <div class="sub-text">INITIALIZE VOICE PROTOCOL</div>
+
             <div class="input-group">
-                <label>ACCESS CODE (REQUIRED)</label>
-                <input type="password" id="access-code" placeholder="ENTER CODE" autocomplete="off">
+                <label>ACCESS CODE</label>
+                <input type="password" id="access-code" class="app-input" placeholder="Requires Verification" readonly>
             </div>
-
             <div class="input-group">
                 <label>OPERATOR NAME</label>
-                <input type="text" id="user-name" placeholder="Enter Full Name" autocomplete="off">
+                <input type="text" id="user-name" class="app-input" placeholder="Enter Full Name" autocomplete="off">
             </div>
             <div class="input-group">
                 <label>COMM LINK (EMAIL)</label>
-                <input type="email" id="user-email" placeholder="name@company.com" autocomplete="off">
+                <input type="email" id="user-email" class="app-input" placeholder="name@company.com" autocomplete="off">
             </div>
             <div class="input-group">
                 <label>PHONE ID</label>
-                <input type="tel" id="user-phone" placeholder="+61..." autocomplete="off">
+                <input type="tel" id="user-phone" class="app-input" placeholder="+61..." autocomplete="off">
             </div>
+
+            <button id="start-btn" class="start-btn">SYSTEM LOCKED</button>
         </div>
 
-        <div class="status-bar"><div class="status-fill" id="visualizer"></div></div>
 
-        <div id="live-terminal" class="terminal-window">
-            <span class="terminal-label">>> INCOMING TRANSMISSION</span>
-            <span id="agent-text">...</span><span class="cursor"></span>
+        <div id="call-section">
+            <div class="voice-orb" id="voice-orb">🎙️</div>
+            <div class="call-status" id="call-status-text">CALL IN PROGRESS...</div>
+            <div class="call-instructions">
+                Your objective: Disqualify the prospect or secure a next step.<br>
+                Do not pitch.<br>
+                <span class="highlight">Good luck.</span>
+            </div>
+            <button id="stop-btn" class="stop-btn-modern">TERMINATE UPLINK</button>
+            <div class="session-info">RECORDING ACTIVE // SESSION ID: <span id="session-id">...</span></div>
         </div>
 
-        <button id="start-btn" class="app-btn" disabled>SYSTEM LOCKED</button>
-        <button id="stop-btn" class="app-btn stop-btn">TERMINATE SESSION</button>
-
-        <div class="log-output" id="status-text">ENTER ACCESS CODE TO PROCEED</div>
     </div>
 
+
     <script>
+        // --- GATEKEEPER LOGIC ---
         const VALID_CODES = ['MONEYBALL', 'AGITATOR', 'VIP'];
+        let verifiedCode = "";
 
         function switchGate(view) {
             document.getElementById('view-home').style.display = 'none';
@@ -286,19 +278,19 @@
             const code = input.value.trim().toUpperCase();
             
             if(VALID_CODES.includes(code)) {
-                // SUCCESS: UNLOCK APP
-                document.getElementById('gatekeeper-overlay').style.display = 'none'; // Hide Gate
-                document.getElementById('app-interface').style.display = 'block'; // Show App
+                verifiedCode = code;
+                // UNLOCK APP
+                const gateOverlay = document.getElementById('gatekeeper-overlay');
+                gateOverlay.style.opacity = '0';
+                setTimeout(() => { gateOverlay.style.display = 'none'; }, 500);
                 
-                // AUTO-FILL THE APP PASSWORD SO THEY DON'T TYPE IT AGAIN
+                // Auto-fill and validate form code
                 const appInput = document.getElementById('access-code');
                 appInput.value = code;
-                
-                // Trigger the input event manually so your existing validation script sees it
-                appInput.dispatchEvent(new Event('input'));
+                appInput.classList.add('valid-code');
+                checkInputs(); // Trigger validation
                 
             } else {
-                // FAIL
                 document.getElementById('gate-error').style.display = 'block';
                 input.style.borderColor = '#ff3333';
             }
@@ -306,110 +298,70 @@
     </script>
 
     <script type="module">
+        // --- MAIN APP LOGIC ---
         import { RetellWebClient } from "https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/+esm";
 
         const retellWebClient = new RetellWebClient();
-        
-        // ELEMENTS
-        const startBtn = document.getElementById('start-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const statusText = document.getElementById('status-text');
-        const visualizer = document.getElementById('visualizer');
-        const liveTerminal = document.getElementById('live-terminal');
-        const agentText = document.getElementById('agent-text');
-        const credentialsForm = document.getElementById('credentials-form');
-        
         const REGISTER_CALL_URL = "/api/register-call"; 
 
-        const codeInput = document.getElementById('access-code');
+        // Elements
+        const formSection = document.getElementById('form-section');
+        const callSection = document.getElementById('call-section');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
         const nameInput = document.getElementById('user-name');
         const emailInput = document.getElementById('user-email');
         const phoneInput = document.getElementById('user-phone');
+        const callStatusText = document.getElementById('call-status-text');
+        const voiceOrb = document.getElementById('voice-orb');
 
-        // *** SET YOUR PASSWORD HERE ***
-        const SECRET_CODE = "MONEYBALL"; 
-
-        // VALIDATION
-        function checkInputs() {
-            // Check Password Match
-            const isCodeValid = codeInput.value.toUpperCase() === SECRET_CODE;
-            
-            // Visual feedback for password
-            if (isCodeValid) {
-                codeInput.classList.add('valid-code');
-            } else {
-                codeInput.classList.remove('valid-code');
-            }
-
-            // Check All Fields
-            if(isCodeValid && nameInput.value.length > 2 && emailInput.value.includes('@') && phoneInput.value.length > 5) {
-                startBtn.disabled = false;
+        // Make checkInputs globally accessible for the gatekeeper script
+        window.checkInputs = function() {
+            if(verifiedCode && nameInput.value.length > 2 && emailInput.value.includes('@') && phoneInput.value.length > 5) {
+                startBtn.classList.add('ready');
                 startBtn.innerText = "INITIATE SEQUENCE";
-                startBtn.style.background = "#00ff41";
-                startBtn.style.borderColor = "#00ff41";
-                startBtn.style.color = "#000";
-                statusText.innerText = ">> CREDENTIALS & CODE ACCEPTED";
-                statusText.style.color = "#00ff41";
             } else {
-                startBtn.disabled = true;
-                if (!isCodeValid && codeInput.value.length > 0) {
-                     startBtn.innerText = "INVALID ACCESS CODE";
-                } else {
-                     startBtn.innerText = "SYSTEM LOCKED";
-                }
-                startBtn.style.background = "#1a1a1a";
-                startBtn.style.borderColor = "#1a1a1a";
-                startBtn.style.color = "#444";
+                startBtn.classList.remove('ready');
+                startBtn.innerText = "AWAITING DATA...";
             }
         }
         
-        codeInput.addEventListener('input', checkInputs);
         nameInput.addEventListener('input', checkInputs);
         emailInput.addEventListener('input', checkInputs);
         phoneInput.addEventListener('input', checkInputs);
 
-        // LOGIC
+        // Retell Events
         retellWebClient.on("call_started", () => {
-            log("CONNECTION ESTABLISHED", "#00ff41");
-            startBtn.style.display = 'none';
-            stopBtn.style.display = 'inline-block';
-            visualizer.style.width = "100%";
-            credentialsForm.style.display = 'none';
-            liveTerminal.style.display = 'block';
-            agentText.innerText = "INITIALIZING VOICE LINK...";
+            // Transition to Call UI
+            formSection.style.display = 'none';
+            callSection.style.display = 'block';
+            document.getElementById('session-id').innerText = "SMB-" + Math.floor(1000 + Math.random() * 9000);
         });
 
         retellWebClient.on("call_ended", () => {
-            log("SESSION ENDED. UPLOADING...", "#666");
-            visualizer.style.width = "0%";
-            agentText.innerText = "LINK SEVERED.";
-            setTimeout(() => { location.reload(); }, 3000);
+            // Transition to Ended State
+            callStatusText.innerText = "LINK SEVERED.";
+            callStatusText.style.color = "#ff3333";
+            callStatusText.style.textShadow = "none";
+            voiceOrb.style.borderColor = "#ff3333";
+            voiceOrb.style.color = "#ff3333";
+            voiceOrb.style.boxShadow = "none";
+            voiceOrb.style.animation = "none";
+            stopBtn.style.display = "none";
+            setTimeout(() => { location.reload(); }, 3500);
         });
 
         retellWebClient.on("error", (error) => {
             console.error(error);
-            log("ERROR: " + (error.message || "UNKNOWN"), "#ff3333");
+            alert("Connection Error: " + error.message);
             retellWebClient.stopCall();
         });
 
-        retellWebClient.on("update", (update) => {
-            if (update.transcript && update.transcript.length > 0) {
-                const lastMsg = update.transcript[update.transcript.length - 1];
-                if (lastMsg.role === 'agent') {
-                    agentText.innerText = lastMsg.content;
-                    liveTerminal.scrollTop = liveTerminal.scrollHeight;
-                }
-            }
-        });
-
-        startBtn.addEventListener('click', startAudit);
-        stopBtn.addEventListener('click', stopAudit);
-
-        async function startAudit() {
-            log("CONNECTING...", "#888");
-            startBtn.disabled = true;
-
-            // 1. Capture the data
+        // Button Actions
+        startBtn.addEventListener('click', async () => {
+            startBtn.innerText = "CONNECTING...";
+            startBtn.classList.remove('ready');
+            
             const leadData = {
                 name: nameInput.value,
                 email: emailInput.value,
@@ -417,30 +369,24 @@
             };
 
             try {
-                // 2. Send data to your Backend
                 const response = await fetch(REGISTER_CALL_URL, {
                     method: "POST",
-                    headers: { 'Content-Type': 'application/json' }, 
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(leadData)
                 });
-
                 if (!response.ok) throw new Error("Backend Failed");
                 const data = await response.json();
-                
-                log("AWAITING AUDIO STREAM...", "#888");
-                await retellWebClient.startCall({
-                    accessToken: data.access_token,
-                });
+                await retellWebClient.startCall({ accessToken: data.access_token });
             } catch (err) {
                 console.error(err);
-                log("FAIL: " + err.message, "#ff3333");
-                startBtn.disabled = false;
-                startBtn.innerText = "RETRY SEQUENCE";
+                alert("Failed to start call: " + err.message);
+                checkInputs(); // Reset button state
             }
-        }
+        });
 
-        function stopAudit() { retellWebClient.stopCall(); }
-        function log(msg, color) { statusText.innerText = ">> " + msg; statusText.style.color = color; }
+        stopBtn.addEventListener('click', () => {
+            retellWebClient.stopCall();
+        });
     </script>
 </body>
 </html>
