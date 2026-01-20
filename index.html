@@ -1,270 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agitator Index | Secure Login</title>
-    <style>
-        body {
-            background-color: #000;
-            color: #fff;
-            font-family: 'Courier New', monospace;
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-        
-        /* Background Grid Animation */
-        .bg-grid {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 255, 65, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 65, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
-            z-index: 1;
-        }
-
-        .access-container {
-            position: relative;
-            z-index: 10;
-            max-width: 500px;
-            width: 90%;
-            padding: 40px;
-            border: 1px solid #333;
-            background: #0a0a0a;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            text-align: center;
-        }
-
-        .status-bar {
-            border-bottom: 1px solid #333;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-            font-size: 12px;
-            color: #666;
-            display: flex;
-            justify-content: space-between;
-        }
-        .status-green { color: #00FF41; animation: blink 2s infinite; }
-        @keyframes blink { 50% { opacity: 0.5; } }
-
-        h1 {
-            font-size: 32px;
-            line-height: 1.2;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            color: #fff;
-            letter-spacing: -1px;
-        }
-        
-        .subhead {
-            color: #888;
-            font-size: 16px;
-            line-height: 1.5;
-            margin-bottom: 40px;
-        }
-
-        /* Forms */
-        .form-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        input {
-            background: #000;
-            border: 1px solid #333;
-            padding: 20px;
-            color: #fff;
-            font-family: 'Courier New', monospace;
-            font-size: 16px;
-            text-align: center;
-            transition: border 0.3s;
-            outline: none;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        input:focus {
-            border-color: #00FF41;
-            box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
-        }
-        
-        .main-btn {
-            background: #00FF41;
-            color: #000;
-            border: none;
-            padding: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.2s;
-            width: 100%;
-        }
-        .main-btn:hover {
-            background: #fff;
-            box-shadow: 0 0 30px rgba(0, 255, 65, 0.5);
-        }
-
-        /* Toggle Link */
-        .toggle-link {
-            display: block;
-            margin-top: 20px;
-            color: #666;
-            font-size: 12px;
-            text-decoration: none;
-            cursor: pointer;
-            border: 1px dashed #333;
-            padding: 10px;
-        }
-        .toggle-link:hover { color: #00FF41; border-color: #00FF41; }
-
-        /* Hidden Sections */
-        #code-section, #success-message, #error-message { display: none; }
-
-        #error-message {
-            color: #FF3333;
-            margin-top: 15px;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        #success-message {
-            padding: 20px;
-            border: 1px solid #00FF41;
-            background: rgba(0, 255, 65, 0.1);
-            color: #00FF41;
-            font-weight: bold;
-        }
-
-        .secure-note { margin-top: 30px; font-size: 10px; color: #444; text-transform: uppercase; }
-        
-        /* Scan Line */
-        .scan-line {
-            width: 100%; height: 2px; background: #00FF41;
-            position: absolute; top: 0; left: 0;
-            animation: scan 3s linear infinite;
-            opacity: 0.3; pointer-events: none;
-        }
-        @keyframes scan {
-            0% { top: 0%; opacity: 0; }
-            50% { opacity: 0.5; }
-            100% { top: 100%; opacity: 0; }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="bg-grid"></div>
+<div id="agitator-gatekeeper" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:99999; display:flex; align-items:center; justify-content:center; text-align:center; font-family:'Courier New', monospace; color:#fff;">
     
-    <div class="access-container">
-        <div class="scan-line"></div>
-        <div class="status-bar">
+    <div style="position:absolute; top:0; left:0; width:100%; height:100%; background-image: linear-gradient(rgba(0, 255, 65, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 65, 0.05) 1px, transparent 1px); background-size:50px 50px; pointer-events:none;"></div>
+
+    <div style="position:relative; z-index:10; max-width:500px; width:90%;">
+        <div style="border-bottom:1px solid #333; padding-bottom:20px; margin-bottom:30px; font-size:12px; color:#666; display:flex; justify-content:space-between;">
             <span>PROTOCOL: AGITATOR_INDEX</span>
-            <span class="status-green">● SYSTEM ONLINE</span>
-        </div>
-        
-        <div id="ui-content">
-            <h1>The Flight Simulator<br>For Enterprise Sales.</h1>
-            <p class="subhead">
-                A live Voice AI simulation testing negotiation, gatekeeping, and disqualification reflexes.
-            </p>
-
-            <div id="request-section">
-                <form class="form-wrapper" onsubmit="handleRequest(event)">
-                    <input type="email" id="req-email" placeholder="ENTER WORK EMAIL" required>
-                    <button type="submit" class="main-btn">REQUEST ACCESS</button>
-                </form>
-                <div class="toggle-link" onclick="switchMode('code')">
-                    [ ALREADY HAVE A CODE? ENTER TERMINAL ]
-                </div>
-            </div>
-
-            <div id="code-section">
-                <form class="form-wrapper" onsubmit="handleCode(event)">
-                    <input type="text" id="access-code" placeholder="ENTER CLEARANCE CODE" style="text-transform:uppercase; letter-spacing:2px;" required>
-                    <button type="submit" class="main-btn" style="background:#fff; color:#000;">VERIFY CODE</button>
-                </form>
-                <div id="error-message">❌ ACCESS DENIED: INVALID CODE</div>
-                <div class="toggle-link" onclick="switchMode('request')">
-                    [ ← BACK TO REQUEST FORM ]
-                </div>
-            </div>
+            <span style="color:#00FF41;">● SYSTEM LOCKED</span>
         </div>
 
-        <div id="success-message">
-            ACCESS GRANTED.<br>Initializing Simulation Environment...
+        <h1 style="font-size:32px; line-height:1.2; margin-bottom:10px; color:#fff; text-transform:uppercase;">The Flight Simulator<br>For Enterprise Sales.</h1>
+        <p style="color:#888; font-size:16px; margin-bottom:40px;">Live Voice AI simulation testing negotiation reflexes.</p>
+
+        <div id="gate-home">
+            <button onclick="gateView('request')" style="background:#00FF41; color:#000; border:1px solid #00FF41; padding:20px; font-family:inherit; font-size:16px; font-weight:bold; cursor:pointer; width:100%; margin-bottom:15px; text-transform:uppercase;">REQUEST ACCESS</button>
+            <button onclick="gateView('code')" style="background:transparent; color:#00FF41; border:1px solid #00FF41; padding:20px; font-family:inherit; font-size:16px; font-weight:bold; cursor:pointer; width:100%; text-transform:uppercase;">I HAVE A CODE</button>
         </div>
 
-        <div class="secure-note">
-            Restricted Access // Agitator Protocol V3.2
+        <div id="gate-request" style="display:none;">
+            <input type="email" id="gate-email" placeholder="ENTER WORK EMAIL" style="background:#000; border:1px solid #333; padding:20px; color:#fff; width:100%; font-family:inherit; font-size:16px; text-align:center; box-sizing:border-box; outline:none; margin-bottom:15px;">
+            <button onclick="gateSubmitRequest()" style="background:#00FF41; color:#000; border:none; padding:20px; width:100%; font-family:inherit; font-size:16px; font-weight:bold; cursor:pointer;">JOIN WAITLIST</button>
+            <div onclick="gateView('home')" style="margin-top:20px; color:#666; font-size:12px; cursor:pointer; text-decoration:underline;">[ ← BACK ]</div>
         </div>
+
+        <div id="gate-code" style="display:none;">
+            <input type="text" id="gate-input" placeholder="ENTER CODE" style="background:#000; border:1px solid #333; padding:20px; color:#fff; width:100%; font-family:inherit; font-size:16px; text-align:center; box-sizing:border-box; outline:none; text-transform:uppercase; letter-spacing:2px; margin-bottom:15px;">
+            <button onclick="gateCheck()" style="background:#fff; color:#000; border:none; padding:20px; width:100%; font-family:inherit; font-size:16px; font-weight:bold; cursor:pointer;">VERIFY CODE</button>
+            <div id="gate-error" style="color:#FF3333; margin-top:15px; font-size:14px; font-weight:bold; display:none;">❌ ACCESS DENIED</div>
+            <div onclick="gateView('home')" style="margin-top:20px; color:#666; font-size:12px; cursor:pointer; text-decoration:underline;">[ ← BACK ]</div>
+        </div>
+
+        <div style="margin-top:40px; font-size:10px; color:#444;">RESTRICTED ACCESS // V3.2</div>
     </div>
+</div>
 
-    <script>
-        // --- CONFIGURATION ---
-        
-        // 1. YOUR VALID CODES
-        const validCodes = ['AGITATOR', 'VIP-ACCESS', 'BETA2026', 'MONEYBALL']; 
-        
-        // 2. THE DESTINATION (IMPORTANT: Change this if your file is named differently)
-        // If your voice agent code is in a file named "simulation.html" in the same folder:
-        const successUrl = "simulation.html"; 
-        
-        // If your voice agent is on a different website (like Vapi.ai), paste that link here instead.
-        // const successUrl = "https://vapi.ai/share/YOUR-LINK";
+<script>
+    // --- GATEKEEPER LOGIC ---
+    const VALID_CODES = ['AGITATOR', 'MONEYBALL', 'VIP2026']; // Add your codes here
 
-        function switchMode(mode) {
-            document.getElementById('error-message').style.display = 'none';
-            if(mode === 'code') {
-                document.getElementById('request-section').style.display = 'none';
-                document.getElementById('code-section').style.display = 'block';
-                document.getElementById('access-code').focus();
-            } else {
-                document.getElementById('code-section').style.display = 'none';
-                document.getElementById('request-section').style.display = 'block';
-            }
+    function gateView(view) {
+        document.getElementById('gate-home').style.display = 'none';
+        document.getElementById('gate-request').style.display = 'none';
+        document.getElementById('gate-code').style.display = 'none';
+        document.getElementById('gate-error').style.display = 'none';
+        
+        if(view === 'home') document.getElementById('gate-home').style.display = 'block';
+        if(view === 'request') document.getElementById('gate-request').style.display = 'block';
+        if(view === 'code') {
+            document.getElementById('gate-code').style.display = 'block';
+            document.getElementById('gate-input').focus();
         }
+    }
 
-        function handleRequest(e) {
-            e.preventDefault();
-            const btn = e.target.querySelector('button');
-            btn.innerText = "ADDING TO QUEUE...";
+    function gateSubmitRequest() {
+        const btn = document.querySelector('#gate-request button');
+        const email = document.getElementById('gate-email').value;
+        if(!email) return;
+        
+        btn.innerText = "ADDING TO QUEUE...";
+        setTimeout(() => {
+            alert("You have been added to the priority list.");
+            window.location.reload(); // Reset state
+        }, 1000);
+    }
+
+    function gateCheck() {
+        const input = document.getElementById('gate-input');
+        const code = input.value.trim().toUpperCase();
+        
+        if(VALID_CODES.includes(code)) {
+            // UNLOCK: FADE OUT THE GATEKEEPER
+            const gate = document.getElementById('agitator-gatekeeper');
+            gate.style.transition = "opacity 0.5s ease";
+            gate.style.opacity = "0";
             setTimeout(() => {
-                alert("You have been added to the priority waitlist. Check your email.");
-                btn.innerText = "REQUEST SENT";
-            }, 1000);
+                gate.style.display = "none"; // REMOVE GATE
+            }, 500);
+        } else {
+            // ERROR
+            document.getElementById('gate-error').style.display = 'block';
+            input.style.borderColor = '#FF3333';
+            setTimeout(() => { input.style.borderColor = '#333'; }, 2000);
         }
-
-        function handleCode(e) {
-            e.preventDefault();
-            const input = document.getElementById('access-code');
-            const error = document.getElementById('error-message');
-            const code = input.value.trim().toUpperCase();
-
-            if (validCodes.includes(code)) {
-                // Success
-                document.getElementById('ui-content').style.display = 'none';
-                document.getElementById('success-message').style.display = 'block';
-                setTimeout(() => {
-                    window.location.href = successUrl;
-                }, 1500);
-            } else {
-                // Fail
-                input.style.borderColor = '#FF3333';
-                error.style.display = 'block';
-                input.value = '';
-                input.placeholder = "TRY AGAIN";
-                setTimeout(() => { input.style.borderColor = '#333'; }, 2000);
-            }
-        }
-    </script>
-
-</body>
-</html>
+    }
+</script>
