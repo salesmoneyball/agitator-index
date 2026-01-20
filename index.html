@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agitator Index | Simulation Terminal</title>
     
-    <script src="https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/dist/index.global.js"></script>
 
     <style>
         /* --- GLOBAL STYLES --- */
@@ -144,7 +144,7 @@
                 <div onclick="gateView('home')" class="back-link">[ ← BACK ]</div>
             </div>
 
-            <div class="secure-note">Restricted Access // Agitator Protocol V3.2</div>
+            <div class="secure-note">Restricted Access // Agitator Protocol V3.3</div>
         </div>
     </div>
 
@@ -161,12 +161,12 @@
 
         <h1 id="sim-status">Simulation Ready</h1>
         <p class="subhead">
-            Your objective: Disqualify the prospect or secure a next step. Do not pitch.<br>
-            <strong>Good luck.</strong>
+            Your objective: <strong>Survive the pressure.</strong><br>
+            Handle the objections. Do not fold.
         </p>
 
-        <button id="start-call-btn" class="main-btn">INITIALIZE UPLINK</button>
-        <button id="end-call-btn" class="stop-btn" style="display:none;">TERMINATE UPLINK</button>
+        <button id="start-call-btn" class="main-btn" onclick="toggleCall()">INITIALIZE UPLINK</button>
+        <button id="end-call-btn" class="stop-btn" style="display:none;" onclick="toggleCall()">TERMINATE UPLINK</button>
 
         <div class="secure-note">RECORDING ACTIVE // SESSION ID: <span id="sess-id">PENDING</span></div>
     </div>
@@ -175,7 +175,12 @@
     <script>
         // --- GATEKEEPER CONFIGURATION ---
         const VALID_CODES = ['AGITATOR', 'MONEYBALL', 'VIP2026', 'BETA']; 
+        
+        // --- RETELL AI CLIENT ---
+        const retellWebClient = new retellClientSdk.RetellWebClient();
+        let isCalling = false;
 
+        // --- GATE UI LOGIC ---
         function gateView(view) {
             document.getElementById('gate-home').style.display = 'none';
             document.getElementById('gate-request').style.display = 'none';
@@ -226,25 +231,90 @@
                 setTimeout(() => { input.style.borderColor = '#333'; }, 2000);
             }
         }
+
+        // --- RETELL AI LOGIC ---
         
-        // --- BUTTON LISTENER FOR UI TOGGLE ---
-        // This makes the orb glow when you click start, handling the visual state
-        document.getElementById('start-call-btn').addEventListener('click', function() {
-            this.style.display = 'none';
-            document.getElementById('end-call-btn').style.display = 'block';
-            document.getElementById('orb').classList.add('active');
-            document.getElementById('sim-status').innerText = "Call in Progress...";
+        // Listen for call updates from Retell
+        retellWebClient.on("call_started", () => {
+            console.log("Call started");
+            updateUIState(true);
         });
 
-        document.getElementById('end-call-btn').addEventListener('click', function() {
-            this.style.display = 'none';
-            document.getElementById('start-call-btn').style.display = 'block';
-            document.getElementById('orb').classList.remove('active');
-            document.getElementById('sim-status').innerText = "Simulation Ended";
+        retellWebClient.on("call_ended", () => {
+            console.log("Call ended");
+            isCalling = false;
+            updateUIState(false);
         });
+        
+        retellWebClient.on("error", (error) => {
+            console.error("An error occurred:", error);
+            alert("Connection Error: " + error.message);
+            isCalling = false;
+            updateUIState(false);
+        });
+
+        async function toggleCall() {
+            const startBtn = document.getElementById('start-call-btn');
+            
+            if (isCalling) {
+                // STOP THE CALL
+                retellWebClient.stopCall();
+                isCalling = false;
+                updateUIState(false);
+            } else {
+                // START THE CALL
+                isCalling = true;
+                startBtn.innerText = "ESTABLISHING UPLINK...";
+                
+                try {
+                    // 1. Get Token from your local API
+                    // Note: We assume your file api/register-call.js is accessible via /api/register-call
+                    const response = await fetch("/api/register-call", {
+                        method: "POST", // Retell usually expects a POST to create the call
+                        headers: { "Content-Type": "application/json" }
+                        // If your API needs an agent ID in the body, add it here:
+                        // body: JSON.stringify({ agent_id: "YOUR_AGENT_ID" }) 
+                    });
+
+                    if (!response.ok) throw new Error("Failed to get access token from backend");
+
+                    const data = await response.json();
+                    
+                    // 2. Start the call with the access token
+                    // We assume the API returns { access_token: "..." }
+                    await retellWebClient.startCall({
+                        accessToken: data.access_token, 
+                    });
+
+                } catch (err) {
+                    console.error("Start call failed:", err);
+                    alert("Uplink Failed: " + err.message);
+                    isCalling = false;
+                    updateUIState(false);
+                }
+            }
+        }
+
+        function updateUIState(active) {
+            const startBtn = document.getElementById('start-call-btn');
+            const endBtn = document.getElementById('end-call-btn');
+            const orb = document.getElementById('orb');
+            const status = document.getElementById('sim-status');
+
+            if (active) {
+                startBtn.style.display = 'none';
+                endBtn.style.display = 'block';
+                orb.classList.add('active');
+                status.innerText = "Call in Progress...";
+            } else {
+                startBtn.style.display = 'block';
+                startBtn.innerText = "INITIALIZE UPLINK";
+                endBtn.style.display = 'none';
+                orb.classList.remove('active');
+                status.innerText = "Simulation Ready";
+            }
+        }
     </script>
-
-    <script type="module" src="./api/register-call.js"></script>
 
 </body>
 </html>
