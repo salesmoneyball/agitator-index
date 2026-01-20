@@ -209,11 +209,16 @@
 
     <script>
         // --- CONFIGURATION ---
-        // 1. Define your valid codes here (Uppercased)
+        
+        // 1. YOUR VALID CODES
         const validCodes = ['AGITATOR', 'VIP-ACCESS', 'BETA2026', 'MONEYBALL']; 
         
-        // 2. Define where they go if the code is correct
-        const successUrl = "https://salesmoneyball.com/dojo"; // REPLACE THIS with your actual simulation URL
+        // 2. THE DESTINATION (IMPORTANT: Change this if your file is named differently)
+        // If your voice agent code is in a file named "simulation.html" in the same folder:
+        const successUrl = "simulation.html"; 
+        
+        // If your voice agent is on a different website (like Vapi.ai), paste that link here instead.
+        // const successUrl = "https://vapi.ai/share/YOUR-LINK";
 
         function switchMode(mode) {
             document.getElementById('error-message').style.display = 'none';
@@ -235,7 +240,6 @@
                 alert("You have been added to the priority waitlist. Check your email.");
                 btn.innerText = "REQUEST SENT";
             }, 1000);
-            // Add your Formspree/Mailchimp logic here
         }
 
         function handleCode(e) {
