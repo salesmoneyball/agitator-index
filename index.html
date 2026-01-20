@@ -3,318 +3,444 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agitator Index | Simulation Terminal</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/dist/index.global.js"></script>
-
+    <title>AGITATOR INDEX | TERMINAL</title>
     <style>
-        /* --- GLOBAL STYLES --- */
+        /* ========================================= */
+        /* 1. GLOBAL STYLES                          */
+        /* ========================================= */
         body {
-            background-color: #000;
-            color: #fff;
-            font-family: 'Courier New', monospace;
-            margin: 0;
-            height: 100vh;
+            background-color: #080808;
+            color: #888;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-        }
-        
-        /* Background Grid */
-        .bg-grid {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 255, 65, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 65, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
-            z-index: 1;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden; /* Prevent scroll bars during transitions */
         }
 
-        /* --- GATEKEEPER OVERLAY (LOCKED STATE) --- */
-        #agitator-gatekeeper {
+        /* ========================================= */
+        /* 2. GATEKEEPER STYLES (THE LOCK SCREEN)    */
+        /* ========================================= */
+        #gatekeeper-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999;
+            background: #080808;
+            z-index: 9999;
             display: flex; align-items: center; justify-content: center;
+            flex-direction: column;
+        }
+
+        .gate-box {
+            width: 100%; max-width: 450px;
+            background: #000; border: 1px solid #333; padding: 40px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9); text-align: center;
+        }
+
+        .gate-title {
+            font-family: 'Courier New', monospace; color: #fff;
+            font-size: 1.8rem; margin-bottom: 10px; letter-spacing: -1px;
+        }
+
+        .gate-sub { color: #666; font-size: 0.9rem; margin-bottom: 40px; }
+
+        .gate-btn {
+            background: #00ff41; color: #000; border: 1px solid #00ff41;
+            padding: 15px; width: 100%; font-family: 'Courier New', monospace;
+            font-weight: bold; font-size: 1rem; cursor: pointer;
+            text-transform: uppercase; margin-bottom: 15px; transition: all 0.2s;
+        }
+        .gate-btn:hover { background: #fff; box-shadow: 0 0 20px rgba(0,255,65,0.4); }
+
+        .gate-btn-secondary {
+            background: transparent; color: #00ff41; border: 1px solid #00ff41;
+            padding: 15px; width: 100%; font-family: 'Courier New', monospace;
+            font-weight: bold; font-size: 1rem; cursor: pointer;
+            text-transform: uppercase; transition: all 0.2s;
+        }
+        .gate-btn-secondary:hover { background: rgba(0, 255, 65, 0.1); }
+
+        .gate-input {
+            width: 100%; background: #111; border: 1px solid #333; color: #fff;
+            padding: 15px; font-family: 'Courier New', monospace; font-size: 1.2rem;
+            text-align: center; outline: none; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;
+        }
+        .gate-input:focus { border-color: #00ff41; }
+
+        .gate-back { margin-top: 20px; font-size: 0.8rem; color: #666; cursor: pointer; text-decoration: underline; }
+        .gate-error { color: #ff3333; font-family: 'Courier New', monospace; margin-top: 10px; display: none; }
+
+        /* Hide specific gate views initially */
+        #view-request, #view-code { display: none; }
+
+
+        /* ========================================= */
+        /* 3. MAIN APP STYLES (HIDDEN INITIALLY)     */
+        /* ========================================= */
+        .interface-box {
+            display: none; /* Hidden until unlocked */
+            width: 100%;
+            max-width: 500px;
+            background: #000;
+            border: 1px solid #333;
+            padding: 40px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9);
             text-align: center;
+            position: relative;
+            z-index: 10;
         }
 
-        .gate-content {
-            position: relative; z-index: 10; max-width: 500px; width: 90%;
-            background: #0a0a0a; border: 1px solid #333; padding: 40px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        h1 {
+            font-family: 'Courier New', monospace;
+            color: #ccc;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
         }
 
-        /* --- SIMULATION UI (UNLOCKED STATE) --- */
-        #simulation-ui {
-            position: relative; z-index: 5; max-width: 600px; width: 90%;
-            text-align: center; display: none; /* Hidden until unlocked */
-            padding: 40px; border: 1px solid #00FF41; background: #0a0a0a;
-            box-shadow: 0 0 50px rgba(0, 255, 65, 0.1);
+        .sub-text { font-size: 0.9rem; color: #666; margin-bottom: 30px; }
+
+        /* INPUTS */
+        .input-group { margin-bottom: 20px; text-align: left; }
+
+        label {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            color: #444;
+            display: block;
+            margin-bottom: 5px;
+            text-transform: uppercase;
         }
-
-        /* --- SHARED COMPONENTS --- */
-        .status-bar {
-            border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 30px;
-            font-size: 12px; color: #666; display: flex; justify-content: space-between;
-        }
-        .status-green { color: #00FF41; animation: blink 2s infinite; }
-        @keyframes blink { 50% { opacity: 0.5; } }
-
-        h1 { font-size: 32px; line-height: 1.2; margin-bottom: 10px; text-transform: uppercase; color: #fff; letter-spacing: -1px; }
-        .subhead { color: #888; font-size: 16px; line-height: 1.5; margin-bottom: 40px; }
-
-        /* BUTTONS & INPUTS */
-        .btn-group { display: flex; flex-direction: column; gap: 20px; }
-
-        .main-btn, .secondary-btn {
-            padding: 20px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold;
-            cursor: pointer; text-transform: uppercase; letter-spacing: 1px; width: 100%;
-            transition: all 0.2s; box-sizing: border-box;
-        }
-
-        .main-btn { background: #00FF41; color: #000; border: 1px solid #00FF41; }
-        .main-btn:hover { background: #fff; box-shadow: 0 0 30px rgba(0, 255, 65, 0.5); }
-
-        .secondary-btn { background: transparent; color: #00FF41; border: 1px solid #00FF41; }
-        .secondary-btn:hover { background: rgba(0, 255, 65, 0.1); }
-
-        .stop-btn { background: transparent; color: #FF3333; border: 1px solid #FF3333; }
-        .stop-btn:hover { background: rgba(255, 51, 51, 0.1); box-shadow: 0 0 15px rgba(255, 51, 51, 0.3); }
 
         input {
-            background: #000; border: 1px solid #333; padding: 20px; color: #fff;
-            font-family: 'Courier New', monospace; font-size: 16px; text-align: center;
-            outline: none; width: 100%; box-sizing: border-box; margin-bottom: 15px;
+            width: 100%;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            color: #00ff41;
+            font-family: 'Courier New', monospace;
+            padding: 12px;
+            font-size: 1rem;
+            outline: none;
+            box-sizing: border-box; 
+            transition: border 0.2s;
         }
-        input:focus { border-color: #00FF41; }
 
-        .back-link { margin-top: 20px; color: #666; font-size: 12px; cursor: pointer; text-decoration: underline; }
+        input:focus { border-color: #00ff41; background: #000; }
         
-        /* VOICE ORB ANIMATION */
-        .voice-orb {
-            width: 100px; height: 100px; background: #000; border-radius: 50%;
-            border: 2px solid #333; margin: 0 auto 30px auto; position: relative;
-            display: flex; align-items: center; justify-content: center; font-size: 40px;
-        }
-        .voice-orb.active {
-            border-color: #00FF41; box-shadow: 0 0 30px #00FF41;
-            animation: pulse-orb 2s infinite;
-        }
-        @keyframes pulse-orb { 0% {box-shadow: 0 0 30px #00FF41;} 50% {box-shadow: 0 0 60px #00FF41;} 100% {box-shadow: 0 0 30px #00FF41;} }
+        /* PASSWORD FIELD SPECIFIC */
+        #access-code { color: #ff3333; border-color: #ff3333; }
+        #access-code.valid-code { color: #00ff41; border-color: #00ff41; }
 
-        /* Utilities */
-        #gate-request, #gate-code, #gate-error { display: none; }
-        .scan-line { width: 100%; height: 2px; background: #00FF41; position: absolute; top: 0; left: 0; animation: scan 3s linear infinite; opacity: 0.3; pointer-events: none; }
-        @keyframes scan { 0% { top: 0%; opacity: 0; } 50% { opacity: 0.5; } 100% { top: 100%; opacity: 0; } }
-        .secure-note { margin-top: 30px; font-size: 10px; color: #444; text-transform: uppercase; }
+        /* VISUALIZER */
+        .status-bar {
+            height: 4px; width: 100%; background: #111;
+            margin: 30px 0; position: relative; overflow: hidden;
+        }
+        
+        .status-fill {
+            height: 100%; width: 0%; background: #00ff41;
+            transition: width 0.2s; box-shadow: 0 0 10px #00ff41;
+        }
+
+        /* LIVE TERMINAL */
+        .terminal-window {
+            background: #050505; border: 1px solid #333; padding: 15px;
+            margin-top: 25px; height: 80px; overflow-y: auto;
+            text-align: left; font-family: 'Courier New', monospace;
+            display: none; border-left: 2px solid #00ff41;
+        }
+
+        .terminal-label { font-size: 0.6rem; color: #666; display: block; margin-bottom: 5px; }
+        #agent-text { color: #00ff41; font-size: 0.85rem; line-height: 1.4; }
+        .cursor {
+            display: inline-block; width: 6px; height: 12px; background: #00ff41;
+            animation: blink 1s infinite; vertical-align: middle; margin-left: 5px;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* APP BUTTONS */
+        .app-btn {
+            background: #00ff41; color: #000; border: 1px solid #00ff41;
+            padding: 15px 30px; font-family: 'Courier New', monospace;
+            font-weight: bold; font-size: 1rem; cursor: pointer;
+            text-transform: uppercase; width: 100%; transition: all 0.2s;
+        }
+
+        .app-btn:hover { background: #000; color: #00ff41; }
+        
+        .app-btn:disabled {
+            background: #1a1a1a; border-color: #1a1a1a; color: #444;
+            cursor: not-allowed; pointer-events: none;
+        }
+
+        .stop-btn {
+            background: transparent; border-color: #ff3333; color: #ff3333;
+            margin-top: 10px; display: none;
+        }
+        .stop-btn:hover { background: #ff3333; color: #000; }
+
+        .log-output {
+            margin-top: 20px; font-family: 'Courier New', monospace;
+            font-size: 0.8rem; color: #444; min-height: 20px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="bg-grid"></div>
+    <div id="gatekeeper-overlay">
+        <div class="gate-box">
+            <h1 class="gate-title">Agitator Index</h1>
+            <p class="gate-sub">SECURE SIMULATION TERMINAL</p>
 
-    <div id="agitator-gatekeeper">
-        <div class="gate-content">
-            <div class="scan-line"></div>
-            <div class="status-bar">
-                <span>PROTOCOL: AGITATOR_INDEX</span>
-                <span class="status-green">● SYSTEM LOCKED</span>
+            <div id="view-home">
+                <button class="gate-btn" onclick="switchGate('request')">REQUEST ACCESS</button>
+                <button class="gate-btn-secondary" onclick="switchGate('code')">I HAVE A CODE</button>
             </div>
 
-            <h1>The Flight Simulator<br>For Enterprise Sales.</h1>
-            <p class="subhead">Live Voice AI simulation testing negotiation reflexes.</p>
-
-            <div id="gate-home" class="btn-group">
-                <button onclick="gateView('request')" class="main-btn">REQUEST ACCESS</button>
-                <button onclick="gateView('code')" class="secondary-btn">I HAVE A CODE</button>
+            <div id="view-request">
+                <input type="email" class="gate-input" id="gate-email" placeholder="ENTER WORK EMAIL">
+                <button class="gate-btn" onclick="submitRequest()">JOIN WAITLIST</button>
+                <div class="gate-back" onclick="switchGate('home')">[ ← BACK ]</div>
             </div>
 
-            <div id="gate-request">
-                <input type="email" id="gate-email" placeholder="ENTER WORK EMAIL">
-                <button onclick="gateSubmitRequest()" class="main-btn">JOIN WAITLIST</button>
-                <div onclick="gateView('home')" class="back-link">[ ← BACK ]</div>
+            <div id="view-code">
+                <input type="text" class="gate-input" id="gate-code-input" placeholder="ENTER CODE">
+                <button class="gate-btn" onclick="verifyGateCode()">VERIFY</button>
+                <div class="gate-error" id="gate-error">ACCESS DENIED</div>
+                <div class="gate-back" onclick="switchGate('home')">[ ← BACK ]</div>
             </div>
-
-            <div id="gate-code">
-                <input type="text" id="gate-input" placeholder="ENTER CODE" style="text-transform:uppercase; letter-spacing:2px;">
-                <button onclick="gateCheck()" class="main-btn" style="background:#fff; color:#000;">VERIFY CODE</button>
-                <div id="gate-error" style="color:#FF3333; margin-top:15px; font-size:14px; font-weight:bold;">❌ ACCESS DENIED</div>
-                <div onclick="gateView('home')" class="back-link">[ ← BACK ]</div>
-            </div>
-
-            <div class="secure-note">Restricted Access // Agitator Protocol V3.3</div>
         </div>
     </div>
 
+    <div class="interface-box" id="app-interface">
+        <h1>Agitator Index™</h1>
+        <div class="sub-text">VOICE SIMULATION PROTOCOL V3.2</div>
 
-    <div id="simulation-ui">
-        <div class="status-bar">
-            <span>AGITATOR INDEX: ACTIVE</span>
-            <span class="status-green">● CONNECTED</span>
+        <div id="credentials-form">
+            <div class="input-group">
+                <label>ACCESS CODE (REQUIRED)</label>
+                <input type="password" id="access-code" placeholder="ENTER CODE" autocomplete="off">
+            </div>
+
+            <div class="input-group">
+                <label>OPERATOR NAME</label>
+                <input type="text" id="user-name" placeholder="Enter Full Name" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>COMM LINK (EMAIL)</label>
+                <input type="email" id="user-email" placeholder="name@company.com" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>PHONE ID</label>
+                <input type="tel" id="user-phone" placeholder="+61..." autocomplete="off">
+            </div>
         </div>
 
-        <div id="orb" class="voice-orb">
-            <div class="mic-icon">🎙️</div>
+        <div class="status-bar"><div class="status-fill" id="visualizer"></div></div>
+
+        <div id="live-terminal" class="terminal-window">
+            <span class="terminal-label">>> INCOMING TRANSMISSION</span>
+            <span id="agent-text">...</span><span class="cursor"></span>
         </div>
 
-        <h1 id="sim-status">Simulation Ready</h1>
-        <p class="subhead">
-            Your objective: <strong>Survive the pressure.</strong><br>
-            Handle the objections. Do not fold.
-        </p>
+        <button id="start-btn" class="app-btn" disabled>SYSTEM LOCKED</button>
+        <button id="stop-btn" class="app-btn stop-btn">TERMINATE SESSION</button>
 
-        <button id="start-call-btn" class="main-btn" onclick="toggleCall()">INITIALIZE UPLINK</button>
-        <button id="end-call-btn" class="stop-btn" style="display:none;" onclick="toggleCall()">TERMINATE UPLINK</button>
-
-        <div class="secure-note">RECORDING ACTIVE // SESSION ID: <span id="sess-id">PENDING</span></div>
+        <div class="log-output" id="status-text">ENTER ACCESS CODE TO PROCEED</div>
     </div>
-
 
     <script>
-        // --- GATEKEEPER CONFIGURATION ---
-        const VALID_CODES = ['AGITATOR', 'MONEYBALL', 'VIP2026', 'BETA']; 
-        
-        // --- RETELL AI CLIENT ---
-        const retellWebClient = new retellClientSdk.RetellWebClient();
-        let isCalling = false;
+        const VALID_CODES = ['MONEYBALL', 'AGITATOR', 'VIP'];
 
-        // --- GATE UI LOGIC ---
-        function gateView(view) {
-            document.getElementById('gate-home').style.display = 'none';
-            document.getElementById('gate-request').style.display = 'none';
-            document.getElementById('gate-code').style.display = 'none';
+        function switchGate(view) {
+            document.getElementById('view-home').style.display = 'none';
+            document.getElementById('view-request').style.display = 'none';
+            document.getElementById('view-code').style.display = 'none';
             document.getElementById('gate-error').style.display = 'none';
-            
-            if(view === 'home') document.getElementById('gate-home').style.display = 'flex';
+
+            if(view === 'home') document.getElementById('view-home').style.display = 'block';
             if(view === 'request') {
-                document.getElementById('gate-request').style.display = 'block';
+                document.getElementById('view-request').style.display = 'block';
                 document.getElementById('gate-email').focus();
             }
             if(view === 'code') {
-                document.getElementById('gate-code').style.display = 'block';
-                document.getElementById('gate-input').focus();
+                document.getElementById('view-code').style.display = 'block';
+                document.getElementById('gate-code-input').focus();
             }
         }
 
-        function gateSubmitRequest() {
-            const btn = document.querySelector('#gate-request button');
-            const email = document.getElementById('gate-email').value;
-            if(!email) return;
-            
+        function submitRequest() {
+            const btn = document.querySelector('#view-request button');
             btn.innerText = "ADDING TO QUEUE...";
             setTimeout(() => {
-                alert("You have been added to the priority list.");
-                window.location.reload(); 
+                alert("You have been added to the priority waitlist.");
+                location.reload();
             }, 1000);
         }
 
-        function gateCheck() {
-            const input = document.getElementById('gate-input');
+        function verifyGateCode() {
+            const input = document.getElementById('gate-code-input');
             const code = input.value.trim().toUpperCase();
             
             if(VALID_CODES.includes(code)) {
-                // SUCCESS: UNLOCK
-                const gate = document.getElementById('agitator-gatekeeper');
-                gate.style.transition = "opacity 0.5s ease";
-                gate.style.opacity = "0";
-                setTimeout(() => {
-                    gate.style.display = "none"; // Remove Gate
-                    document.getElementById('simulation-ui').style.display = "block"; // Show App
-                    document.getElementById('sess-id').innerText = "SMB-" + Math.floor(Math.random()*10000);
-                }, 500);
+                // SUCCESS: UNLOCK APP
+                document.getElementById('gatekeeper-overlay').style.display = 'none'; // Hide Gate
+                document.getElementById('app-interface').style.display = 'block'; // Show App
+                
+                // AUTO-FILL THE APP PASSWORD SO THEY DON'T TYPE IT AGAIN
+                const appInput = document.getElementById('access-code');
+                appInput.value = code;
+                
+                // Trigger the input event manually so your existing validation script sees it
+                appInput.dispatchEvent(new Event('input'));
+                
             } else {
                 // FAIL
                 document.getElementById('gate-error').style.display = 'block';
-                input.style.borderColor = '#FF3333';
-                setTimeout(() => { input.style.borderColor = '#333'; }, 2000);
-            }
-        }
-
-        // --- RETELL AI LOGIC ---
-        
-        // Listen for call updates from Retell
-        retellWebClient.on("call_started", () => {
-            console.log("Call started");
-            updateUIState(true);
-        });
-
-        retellWebClient.on("call_ended", () => {
-            console.log("Call ended");
-            isCalling = false;
-            updateUIState(false);
-        });
-        
-        retellWebClient.on("error", (error) => {
-            console.error("An error occurred:", error);
-            alert("Connection Error: " + error.message);
-            isCalling = false;
-            updateUIState(false);
-        });
-
-        async function toggleCall() {
-            const startBtn = document.getElementById('start-call-btn');
-            
-            if (isCalling) {
-                // STOP THE CALL
-                retellWebClient.stopCall();
-                isCalling = false;
-                updateUIState(false);
-            } else {
-                // START THE CALL
-                isCalling = true;
-                startBtn.innerText = "ESTABLISHING UPLINK...";
-                
-                try {
-                    // 1. Get Token from your local API
-                    // Note: We assume your file api/register-call.js is accessible via /api/register-call
-                    const response = await fetch("/api/register-call", {
-                        method: "POST", // Retell usually expects a POST to create the call
-                        headers: { "Content-Type": "application/json" }
-                        // If your API needs an agent ID in the body, add it here:
-                        // body: JSON.stringify({ agent_id: "YOUR_AGENT_ID" }) 
-                    });
-
-                    if (!response.ok) throw new Error("Failed to get access token from backend");
-
-                    const data = await response.json();
-                    
-                    // 2. Start the call with the access token
-                    // We assume the API returns { access_token: "..." }
-                    await retellWebClient.startCall({
-                        accessToken: data.access_token, 
-                    });
-
-                } catch (err) {
-                    console.error("Start call failed:", err);
-                    alert("Uplink Failed: " + err.message);
-                    isCalling = false;
-                    updateUIState(false);
-                }
-            }
-        }
-
-        function updateUIState(active) {
-            const startBtn = document.getElementById('start-call-btn');
-            const endBtn = document.getElementById('end-call-btn');
-            const orb = document.getElementById('orb');
-            const status = document.getElementById('sim-status');
-
-            if (active) {
-                startBtn.style.display = 'none';
-                endBtn.style.display = 'block';
-                orb.classList.add('active');
-                status.innerText = "Call in Progress...";
-            } else {
-                startBtn.style.display = 'block';
-                startBtn.innerText = "INITIALIZE UPLINK";
-                endBtn.style.display = 'none';
-                orb.classList.remove('active');
-                status.innerText = "Simulation Ready";
+                input.style.borderColor = '#ff3333';
             }
         }
     </script>
 
+    <script type="module">
+        import { RetellWebClient } from "https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/+esm";
+
+        const retellWebClient = new RetellWebClient();
+        
+        // ELEMENTS
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const statusText = document.getElementById('status-text');
+        const visualizer = document.getElementById('visualizer');
+        const liveTerminal = document.getElementById('live-terminal');
+        const agentText = document.getElementById('agent-text');
+        const credentialsForm = document.getElementById('credentials-form');
+        
+        const REGISTER_CALL_URL = "/api/register-call"; 
+
+        const codeInput = document.getElementById('access-code');
+        const nameInput = document.getElementById('user-name');
+        const emailInput = document.getElementById('user-email');
+        const phoneInput = document.getElementById('user-phone');
+
+        // *** SET YOUR PASSWORD HERE ***
+        const SECRET_CODE = "MONEYBALL"; 
+
+        // VALIDATION
+        function checkInputs() {
+            // Check Password Match
+            const isCodeValid = codeInput.value.toUpperCase() === SECRET_CODE;
+            
+            // Visual feedback for password
+            if (isCodeValid) {
+                codeInput.classList.add('valid-code');
+            } else {
+                codeInput.classList.remove('valid-code');
+            }
+
+            // Check All Fields
+            if(isCodeValid && nameInput.value.length > 2 && emailInput.value.includes('@') && phoneInput.value.length > 5) {
+                startBtn.disabled = false;
+                startBtn.innerText = "INITIATE SEQUENCE";
+                startBtn.style.background = "#00ff41";
+                startBtn.style.borderColor = "#00ff41";
+                startBtn.style.color = "#000";
+                statusText.innerText = ">> CREDENTIALS & CODE ACCEPTED";
+                statusText.style.color = "#00ff41";
+            } else {
+                startBtn.disabled = true;
+                if (!isCodeValid && codeInput.value.length > 0) {
+                     startBtn.innerText = "INVALID ACCESS CODE";
+                } else {
+                     startBtn.innerText = "SYSTEM LOCKED";
+                }
+                startBtn.style.background = "#1a1a1a";
+                startBtn.style.borderColor = "#1a1a1a";
+                startBtn.style.color = "#444";
+            }
+        }
+        
+        codeInput.addEventListener('input', checkInputs);
+        nameInput.addEventListener('input', checkInputs);
+        emailInput.addEventListener('input', checkInputs);
+        phoneInput.addEventListener('input', checkInputs);
+
+        // LOGIC
+        retellWebClient.on("call_started", () => {
+            log("CONNECTION ESTABLISHED", "#00ff41");
+            startBtn.style.display = 'none';
+            stopBtn.style.display = 'inline-block';
+            visualizer.style.width = "100%";
+            credentialsForm.style.display = 'none';
+            liveTerminal.style.display = 'block';
+            agentText.innerText = "INITIALIZING VOICE LINK...";
+        });
+
+        retellWebClient.on("call_ended", () => {
+            log("SESSION ENDED. UPLOADING...", "#666");
+            visualizer.style.width = "0%";
+            agentText.innerText = "LINK SEVERED.";
+            setTimeout(() => { location.reload(); }, 3000);
+        });
+
+        retellWebClient.on("error", (error) => {
+            console.error(error);
+            log("ERROR: " + (error.message || "UNKNOWN"), "#ff3333");
+            retellWebClient.stopCall();
+        });
+
+        retellWebClient.on("update", (update) => {
+            if (update.transcript && update.transcript.length > 0) {
+                const lastMsg = update.transcript[update.transcript.length - 1];
+                if (lastMsg.role === 'agent') {
+                    agentText.innerText = lastMsg.content;
+                    liveTerminal.scrollTop = liveTerminal.scrollHeight;
+                }
+            }
+        });
+
+        startBtn.addEventListener('click', startAudit);
+        stopBtn.addEventListener('click', stopAudit);
+
+        async function startAudit() {
+            log("CONNECTING...", "#888");
+            startBtn.disabled = true;
+
+            // 1. Capture the data
+            const leadData = {
+                name: nameInput.value,
+                email: emailInput.value,
+                phone: phoneInput.value
+            };
+
+            try {
+                // 2. Send data to your Backend
+                const response = await fetch(REGISTER_CALL_URL, {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(leadData)
+                });
+
+                if (!response.ok) throw new Error("Backend Failed");
+                const data = await response.json();
+                
+                log("AWAITING AUDIO STREAM...", "#888");
+                await retellWebClient.startCall({
+                    accessToken: data.access_token,
+                });
+            } catch (err) {
+                console.error(err);
+                log("FAIL: " + err.message, "#ff3333");
+                startBtn.disabled = false;
+                startBtn.innerText = "RETRY SEQUENCE";
+            }
+        }
+
+        function stopAudit() { retellWebClient.stopCall(); }
+        function log(msg, color) { statusText.innerText = ">> " + msg; statusText.style.color = color; }
+    </script>
 </body>
 </html>
