@@ -1,85 +1,250 @@
-<div id="agitator-gatekeeper" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:99999; display:flex; align-items:center; justify-content:center; text-align:center; font-family:'Courier New', monospace; color:#fff;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agitator Index | Simulation Terminal</title>
     
-    <div style="position:absolute; top:0; left:0; width:100%; height:100%; background-image: linear-gradient(rgba(0, 255, 65, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 65, 0.05) 1px, transparent 1px); background-size:50px 50px; pointer-events:none;"></div>
+    <script src="https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js"></script>
 
-    <div style="position:relative; z-index:10; max-width:500px; width:90%;">
-        <div style="border-bottom:1px solid #333; padding-bottom:20px; margin-bottom:30px; font-size:12px; color:#666; display:flex; justify-content:space-between;">
-            <span>PROTOCOL: AGITATOR_INDEX</span>
-            <span style="color:#00FF41;">● SYSTEM LOCKED</span>
+    <style>
+        /* --- GLOBAL STYLES --- */
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        /* Background Grid */
+        .bg-grid {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 65, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 1;
+        }
+
+        /* --- GATEKEEPER OVERLAY (LOCKED STATE) --- */
+        #agitator-gatekeeper {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center;
+        }
+
+        .gate-content {
+            position: relative; z-index: 10; max-width: 500px; width: 90%;
+            background: #0a0a0a; border: 1px solid #333; padding: 40px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        /* --- SIMULATION UI (UNLOCKED STATE) --- */
+        #simulation-ui {
+            position: relative; z-index: 5; max-width: 600px; width: 90%;
+            text-align: center; display: none; /* Hidden until unlocked */
+            padding: 40px; border: 1px solid #00FF41; background: #0a0a0a;
+            box-shadow: 0 0 50px rgba(0, 255, 65, 0.1);
+        }
+
+        /* --- SHARED COMPONENTS --- */
+        .status-bar {
+            border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 30px;
+            font-size: 12px; color: #666; display: flex; justify-content: space-between;
+        }
+        .status-green { color: #00FF41; animation: blink 2s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        h1 { font-size: 32px; line-height: 1.2; margin-bottom: 10px; text-transform: uppercase; color: #fff; letter-spacing: -1px; }
+        .subhead { color: #888; font-size: 16px; line-height: 1.5; margin-bottom: 40px; }
+
+        /* BUTTONS & INPUTS */
+        .btn-group { display: flex; flex-direction: column; gap: 20px; }
+
+        .main-btn, .secondary-btn {
+            padding: 20px; font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 1px; width: 100%;
+            transition: all 0.2s; box-sizing: border-box;
+        }
+
+        .main-btn { background: #00FF41; color: #000; border: 1px solid #00FF41; }
+        .main-btn:hover { background: #fff; box-shadow: 0 0 30px rgba(0, 255, 65, 0.5); }
+
+        .secondary-btn { background: transparent; color: #00FF41; border: 1px solid #00FF41; }
+        .secondary-btn:hover { background: rgba(0, 255, 65, 0.1); }
+
+        .stop-btn { background: transparent; color: #FF3333; border: 1px solid #FF3333; }
+        .stop-btn:hover { background: rgba(255, 51, 51, 0.1); box-shadow: 0 0 15px rgba(255, 51, 51, 0.3); }
+
+        input {
+            background: #000; border: 1px solid #333; padding: 20px; color: #fff;
+            font-family: 'Courier New', monospace; font-size: 16px; text-align: center;
+            outline: none; width: 100%; box-sizing: border-box; margin-bottom: 15px;
+        }
+        input:focus { border-color: #00FF41; }
+
+        .back-link { margin-top: 20px; color: #666; font-size: 12px; cursor: pointer; text-decoration: underline; }
+        
+        /* VOICE ORB ANIMATION */
+        .voice-orb {
+            width: 100px; height: 100px; background: #000; border-radius: 50%;
+            border: 2px solid #333; margin: 0 auto 30px auto; position: relative;
+            display: flex; align-items: center; justify-content: center; font-size: 40px;
+        }
+        .voice-orb.active {
+            border-color: #00FF41; box-shadow: 0 0 30px #00FF41;
+            animation: pulse-orb 2s infinite;
+        }
+        @keyframes pulse-orb { 0% {box-shadow: 0 0 30px #00FF41;} 50% {box-shadow: 0 0 60px #00FF41;} 100% {box-shadow: 0 0 30px #00FF41;} }
+
+        /* Utilities */
+        #gate-request, #gate-code, #gate-error { display: none; }
+        .scan-line { width: 100%; height: 2px; background: #00FF41; position: absolute; top: 0; left: 0; animation: scan 3s linear infinite; opacity: 0.3; pointer-events: none; }
+        @keyframes scan { 0% { top: 0%; opacity: 0; } 50% { opacity: 0.5; } 100% { top: 100%; opacity: 0; } }
+        .secure-note { margin-top: 30px; font-size: 10px; color: #444; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+
+    <div id="agitator-gatekeeper">
+        <div class="gate-content">
+            <div class="scan-line"></div>
+            <div class="status-bar">
+                <span>PROTOCOL: AGITATOR_INDEX</span>
+                <span class="status-green">● SYSTEM LOCKED</span>
+            </div>
+
+            <h1>The Flight Simulator<br>For Enterprise Sales.</h1>
+            <p class="subhead">Live Voice AI simulation testing negotiation reflexes.</p>
+
+            <div id="gate-home" class="btn-group">
+                <button onclick="gateView('request')" class="main-btn">REQUEST ACCESS</button>
+                <button onclick="gateView('code')" class="secondary-btn">I HAVE A CODE</button>
+            </div>
+
+            <div id="gate-request">
+                <input type="email" id="gate-email" placeholder="ENTER WORK EMAIL">
+                <button onclick="gateSubmitRequest()" class="main-btn">JOIN WAITLIST</button>
+                <div onclick="gateView('home')" class="back-link">[ ← BACK ]</div>
+            </div>
+
+            <div id="gate-code">
+                <input type="text" id="gate-input" placeholder="ENTER CODE" style="text-transform:uppercase; letter-spacing:2px;">
+                <button onclick="gateCheck()" class="main-btn" style="background:#fff; color:#000;">VERIFY CODE</button>
+                <div id="gate-error" style="color:#FF3333; margin-top:15px; font-size:14px; font-weight:bold;">❌ ACCESS DENIED</div>
+                <div onclick="gateView('home')" class="back-link">[ ← BACK ]</div>
+            </div>
+
+            <div class="secure-note">Restricted Access // Agitator Protocol V3.2</div>
         </div>
-
-        <h1 style="font-size:32px; line-height:1.2; margin-bottom:10px; color:#fff; text-transform:uppercase;">The Flight Simulator<br>For Enterprise Sales.</h1>
-        <p style="color:#888; font-size:16px; margin-bottom:40px;">Live Voice AI simulation testing negotiation reflexes.</p>
-
-        <div id="gate-home">
-            <button onclick="gateView('request')" style="background:#00FF41; color:#000; border:1px solid #00FF41; padding:20px; font-family:inherit; font-size:16px; font-weight:bold; cursor:pointer; width:100%; margin-bottom:15px; text-transform:uppercase;">REQUEST ACCESS</button>
-            <button onclick="gateView('code')" style="background:transparent; color:#00FF41; border:1px solid #00FF41; padding:20px; font-family:inherit; font-size:16px; font-weight:bold; cursor:pointer; width:100%; text-transform:uppercase;">I HAVE A CODE</button>
-        </div>
-
-        <div id="gate-request" style="display:none;">
-            <input type="email" id="gate-email" placeholder="ENTER WORK EMAIL" style="background:#000; border:1px solid #333; padding:20px; color:#fff; width:100%; font-family:inherit; font-size:16px; text-align:center; box-sizing:border-box; outline:none; margin-bottom:15px;">
-            <button onclick="gateSubmitRequest()" style="background:#00FF41; color:#000; border:none; padding:20px; width:100%; font-family:inherit; font-size:16px; font-weight:bold; cursor:pointer;">JOIN WAITLIST</button>
-            <div onclick="gateView('home')" style="margin-top:20px; color:#666; font-size:12px; cursor:pointer; text-decoration:underline;">[ ← BACK ]</div>
-        </div>
-
-        <div id="gate-code" style="display:none;">
-            <input type="text" id="gate-input" placeholder="ENTER CODE" style="background:#000; border:1px solid #333; padding:20px; color:#fff; width:100%; font-family:inherit; font-size:16px; text-align:center; box-sizing:border-box; outline:none; text-transform:uppercase; letter-spacing:2px; margin-bottom:15px;">
-            <button onclick="gateCheck()" style="background:#fff; color:#000; border:none; padding:20px; width:100%; font-family:inherit; font-size:16px; font-weight:bold; cursor:pointer;">VERIFY CODE</button>
-            <div id="gate-error" style="color:#FF3333; margin-top:15px; font-size:14px; font-weight:bold; display:none;">❌ ACCESS DENIED</div>
-            <div onclick="gateView('home')" style="margin-top:20px; color:#666; font-size:12px; cursor:pointer; text-decoration:underline;">[ ← BACK ]</div>
-        </div>
-
-        <div style="margin-top:40px; font-size:10px; color:#444;">RESTRICTED ACCESS // V3.2</div>
     </div>
-</div>
 
-<script>
-    // --- GATEKEEPER LOGIC ---
-    const VALID_CODES = ['AGITATOR', 'MONEYBALL', 'VIP2026']; // Add your codes here
 
-    function gateView(view) {
-        document.getElementById('gate-home').style.display = 'none';
-        document.getElementById('gate-request').style.display = 'none';
-        document.getElementById('gate-code').style.display = 'none';
-        document.getElementById('gate-error').style.display = 'none';
-        
-        if(view === 'home') document.getElementById('gate-home').style.display = 'block';
-        if(view === 'request') document.getElementById('gate-request').style.display = 'block';
-        if(view === 'code') {
-            document.getElementById('gate-code').style.display = 'block';
-            document.getElementById('gate-input').focus();
+    <div id="simulation-ui">
+        <div class="status-bar">
+            <span>AGITATOR INDEX: ACTIVE</span>
+            <span class="status-green">● CONNECTED</span>
+        </div>
+
+        <div id="orb" class="voice-orb">
+            <div class="mic-icon">🎙️</div>
+        </div>
+
+        <h1 id="sim-status">Simulation Ready</h1>
+        <p class="subhead">
+            Your objective: Disqualify the prospect or secure a next step. Do not pitch.<br>
+            <strong>Good luck.</strong>
+        </p>
+
+        <button id="start-call-btn" class="main-btn">INITIALIZE UPLINK</button>
+        <button id="end-call-btn" class="stop-btn" style="display:none;">TERMINATE UPLINK</button>
+
+        <div class="secure-note">RECORDING ACTIVE // SESSION ID: <span id="sess-id">PENDING</span></div>
+    </div>
+
+
+    <script>
+        // --- GATEKEEPER CONFIGURATION ---
+        const VALID_CODES = ['AGITATOR', 'MONEYBALL', 'VIP2026', 'BETA']; 
+
+        function gateView(view) {
+            document.getElementById('gate-home').style.display = 'none';
+            document.getElementById('gate-request').style.display = 'none';
+            document.getElementById('gate-code').style.display = 'none';
+            document.getElementById('gate-error').style.display = 'none';
+            
+            if(view === 'home') document.getElementById('gate-home').style.display = 'flex';
+            if(view === 'request') {
+                document.getElementById('gate-request').style.display = 'block';
+                document.getElementById('gate-email').focus();
+            }
+            if(view === 'code') {
+                document.getElementById('gate-code').style.display = 'block';
+                document.getElementById('gate-input').focus();
+            }
         }
-    }
 
-    function gateSubmitRequest() {
-        const btn = document.querySelector('#gate-request button');
-        const email = document.getElementById('gate-email').value;
-        if(!email) return;
-        
-        btn.innerText = "ADDING TO QUEUE...";
-        setTimeout(() => {
-            alert("You have been added to the priority list.");
-            window.location.reload(); // Reset state
-        }, 1000);
-    }
-
-    function gateCheck() {
-        const input = document.getElementById('gate-input');
-        const code = input.value.trim().toUpperCase();
-        
-        if(VALID_CODES.includes(code)) {
-            // UNLOCK: FADE OUT THE GATEKEEPER
-            const gate = document.getElementById('agitator-gatekeeper');
-            gate.style.transition = "opacity 0.5s ease";
-            gate.style.opacity = "0";
+        function gateSubmitRequest() {
+            const btn = document.querySelector('#gate-request button');
+            const email = document.getElementById('gate-email').value;
+            if(!email) return;
+            
+            btn.innerText = "ADDING TO QUEUE...";
             setTimeout(() => {
-                gate.style.display = "none"; // REMOVE GATE
-            }, 500);
-        } else {
-            // ERROR
-            document.getElementById('gate-error').style.display = 'block';
-            input.style.borderColor = '#FF3333';
-            setTimeout(() => { input.style.borderColor = '#333'; }, 2000);
+                alert("You have been added to the priority list.");
+                window.location.reload(); 
+            }, 1000);
         }
-    }
-</script>
+
+        function gateCheck() {
+            const input = document.getElementById('gate-input');
+            const code = input.value.trim().toUpperCase();
+            
+            if(VALID_CODES.includes(code)) {
+                // SUCCESS: UNLOCK
+                const gate = document.getElementById('agitator-gatekeeper');
+                gate.style.transition = "opacity 0.5s ease";
+                gate.style.opacity = "0";
+                setTimeout(() => {
+                    gate.style.display = "none"; // Remove Gate
+                    document.getElementById('simulation-ui').style.display = "block"; // Show App
+                    document.getElementById('sess-id').innerText = "SMB-" + Math.floor(Math.random()*10000);
+                }, 500);
+            } else {
+                // FAIL
+                document.getElementById('gate-error').style.display = 'block';
+                input.style.borderColor = '#FF3333';
+                setTimeout(() => { input.style.borderColor = '#333'; }, 2000);
+            }
+        }
+        
+        // --- BUTTON LISTENER FOR UI TOGGLE ---
+        // This makes the orb glow when you click start, handling the visual state
+        document.getElementById('start-call-btn').addEventListener('click', function() {
+            this.style.display = 'none';
+            document.getElementById('end-call-btn').style.display = 'block';
+            document.getElementById('orb').classList.add('active');
+            document.getElementById('sim-status').innerText = "Call in Progress...";
+        });
+
+        document.getElementById('end-call-btn').addEventListener('click', function() {
+            this.style.display = 'none';
+            document.getElementById('start-call-btn').style.display = 'block';
+            document.getElementById('orb').classList.remove('active');
+            document.getElementById('sim-status').innerText = "Simulation Ended";
+        });
+    </script>
+
+    <script type="module" src="./api/register-call.js"></script>
+
+</body>
+</html>
