@@ -1,426 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AGITATOR INDEX | TERMINAL</title>
-    <style>
-        /* ========================================= */
-        /* 1. GLOBAL STYLES                          */
-        /* ========================================= */
-        body {
-            background-color: #080808;
-            color: #888;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agitator Index // Restricted Access</title>
+<style>
+  body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; font-family: 'Courier New', monospace; overflow: hidden; color: #fff; }
+  
+  /* BACKGROUND VIDEO */
+  #bg-video {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; z-index: 0; pointer-events: none;
+  }
 
-        /* Subtle grid background */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none;
-            z-index: -1;
-        }
+  /* GATEKEEPER CONTAINER */
+  #gatekeeper-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 100; transition: opacity 0.8s ease;
+    backdrop-filter: blur(5px);
+  }
 
-        /* ========================================= */
-        /* 2. GATEKEEPER OVERLAY                     */
-        /* ========================================= */
-        #gatekeeper-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #080808; z-index: 9999;
-            display: flex; align-items: center; justify-content: center;
-            flex-direction: column; transition: opacity 0.5s;
-        }
+  .gatekeeper-box {
+    width: 400px; padding: 40px; 
+    border: 1px solid #333; background: #0a0a0a;
+    box-shadow: 0 0 50px rgba(0, 255, 65, 0.1);
+    text-align: center; position: relative;
+  }
 
-        .gate-box {
-            width: 100%; max-width: 450px; background: #000;
-            border: 1px solid #333; padding: 40px; text-align: center;
-            box-shadow: 0 0 60px rgba(0,0,0,0.8);
-        }
+  .gatekeeper-status {
+    color: #FF3333; font-size: 10px; letter-spacing: 2px; margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .blink-dot { width: 8px; height: 8px; background: #FF3333; border-radius: 50%; animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
 
-        .gate-title { font-family: 'Courier New', monospace; font-size: 1.8rem; margin-bottom: 10px; letter-spacing: -1px; color: #fff; }
-        .gate-sub { color: #666; font-size: 0.9rem; margin-bottom: 40px; font-family: 'Courier New', monospace; }
+  .gatekeeper-logo {
+    font-size: 24px; font-weight: bold; color: #fff; letter-spacing: 4px; margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+  }
 
-        .gate-btn {
-            background: #00ff41; color: #000; border: 1px solid #00ff41;
-            padding: 15px; width: 100%; font-family: 'Courier New', monospace;
-            font-weight: bold; font-size: 1rem; cursor: pointer; text-transform: uppercase;
-            margin-bottom: 15px; transition: all 0.2s;
-        }
-        .gate-btn:hover { background: #fff; box-shadow: 0 0 20px rgba(0,255,65,0.4); }
+  .gatekeeper-text { color: #888; font-size: 12px; line-height: 1.6; margin-bottom: 30px; }
 
-        .gate-btn-secondary {
-            background: transparent; color: #00ff41; border: 1px solid #00ff41;
-            padding: 15px; width: 100%; font-family: 'Courier New', monospace;
-            font-weight: bold; font-size: 1rem; cursor: pointer; text-transform: uppercase;
-            transition: all 0.2s;
-        }
-        .gate-btn-secondary:hover { background: rgba(0, 255, 65, 0.1); }
+  /* INPUTS */
+  .gatekeeper-input-group { position: relative; margin-bottom: 15px; }
+  
+  input {
+    width: 100%; padding: 15px; background: #000; border: 1px solid #333;
+    color: #00FF41; font-family: inherit; font-size: 14px; text-align: center;
+    box-sizing: border-box; outline: none; transition: all 0.3s;
+  }
+  input:focus { border-color: #00FF41; box-shadow: 0 0 15px rgba(0, 255, 65, 0.2); }
+  input::placeholder { color: #444; }
+  input.error { border-color: #FF3333; color: #FF3333; animation: shake 0.3s; }
+  @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } 100% { transform: translateX(0); } }
 
-        .gate-input {
-            width: 100%; background: #111; border: 1px solid #333; color: #fff;
-            padding: 15px; font-family: 'Courier New', monospace; font-size: 1.2rem;
-            text-align: center; outline: none; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;
-        }
-        .gate-input:focus { border-color: #00ff41; }
+  /* BUTTONS */
+  .gatekeeper-btn {
+    width: 100%; padding: 15px; border: none; cursor: pointer; font-family: inherit;
+    font-weight: bold; font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
+    transition: all 0.3s; margin-top: 10px;
+  }
+  .gatekeeper-btn { background: #00FF41; color: #000; box-shadow: 0 0 20px rgba(0, 255, 65, 0.4); }
+  .gatekeeper-btn:hover { background: #fff; box-shadow: 0 0 30px rgba(0, 255, 65, 0.6); }
+  
+  .gatekeeper-btn.secondary { 
+    background: transparent; border: 1px solid #444; color: #666; box-shadow: none; 
+  }
+  .gatekeeper-btn.secondary:hover { border-color: #fff; color: #fff; }
 
-        .gate-back { margin-top: 20px; font-size: 0.8rem; color: #666; cursor: pointer; text-decoration: underline; font-family: 'Courier New', monospace; }
-        .gate-error { color: #ff3333; margin-top: 10px; display: none; font-family: 'Courier New', monospace; }
-        #view-request, #view-code { display: none; }
+  .gatekeeper-divider { margin: 20px 0; font-size: 10px; color: #444; letter-spacing: 2px; }
+  
+  /* SUCCESS MESSAGE */
+  #waitlist-status { margin-top: 15px; font-size: 11px; text-transform: uppercase; display: none; }
 
-
-        /* ========================================= */
-        /* 3. MAIN INTERFACE BOX                     */
-        /* ========================================= */
-        .interface-box {
-            display: none; /* Hidden until unlocked */
-            width: 100%; max-width: 500px;
-            background: #000; border: 1px solid #333; padding: 40px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.9); text-align: center;
-            position: relative; z-index: 10;
-        }
-
-        h1 {
-            font-family: 'Courier New', monospace; color: #ccc;
-            font-size: 1.5rem; text-transform: uppercase;
-            letter-spacing: -1px; margin-bottom: 10px;
-        }
-
-        .sub-text { font-size: 0.9rem; color: #666; margin-bottom: 30px; font-family: 'Courier New', monospace; }
-
-
-        /* ========================================= */
-        /* 4. FORM STYLING (RESTORED)                */
-        /* ========================================= */
-        .input-group { margin-bottom: 20px; text-align: left; }
-
-        label {
-            font-family: 'Courier New', monospace; font-size: 0.7rem;
-            color: #444; display: block; margin-bottom: 5px; text-transform: uppercase;
-        }
-
-        .app-input {
-            width: 100%; background: #0a0a0a; border: 1px solid #333; color: #00ff41;
-            font-family: 'Courier New', monospace; padding: 12px; font-size: 1rem;
-            outline: none; box-sizing: border-box; transition: border 0.2s;
-        }
-
-        .app-input:focus { border-color: #00ff41; background: #000; }
-        
-        #access-code.valid-code { color: #00ff41; border-color: #00ff41; }
-        #access-code.invalid-code { color: #ff3333; border-color: #ff3333; }
-
-        .start-btn {
-            background: #1a1a1a; color: #444; border: 1px solid #1a1a1a;
-            padding: 15px 30px; font-family: 'Courier New', monospace; font-weight: bold;
-            font-size: 1rem; cursor: not-allowed; text-transform: uppercase;
-            width: 100%; transition: all 0.3s; pointer-events: none;
-        }
-        .start-btn.ready {
-            background: #00ff41; color: #000; border-color: #00ff41;
-            cursor: pointer; pointer-events: auto;
-        }
-        .start-btn.ready:hover { background: #fff; box-shadow: 0 0 30px rgba(0,255,65,0.5); }
-
-
-        /* ========================================= */
-        /* 5. CALL UI (ORB + TERMINAL)               */
-        /* ========================================= */
-        #call-section { display: none; text-align: center; }
-
-        /* Glowing Voice Orb */
-        .voice-orb {
-            width: 100px; height: 100px; background: #000; border-radius: 50%;
-            border: 2px solid #00ff41; margin: 0 auto 30px auto;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 40px; color: #00ff41;
-            box-shadow: 0 0 40px rgba(0,255,65,0.4), inset 0 0 20px rgba(0,255,65,0.2);
-            animation: pulse-orb 2s infinite ease-in-out;
-        }
-        @keyframes pulse-orb {
-            0% { transform: scale(1); box-shadow: 0 0 40px rgba(0,255,65,0.4), inset 0 0 20px rgba(0,255,65,0.2); }
-            50% { transform: scale(1.05); box-shadow: 0 0 80px rgba(0,255,65,0.6), inset 0 0 40px rgba(0,255,65,0.4); }
-            100% { transform: scale(1); box-shadow: 0 0 40px rgba(0,255,65,0.4), inset 0 0 20px rgba(0,255,65,0.2); }
-        }
-
-        .protocol-text {
-            font-family: 'Courier New', monospace; color: #fff; font-size: 0.9rem;
-            margin-bottom: 20px; line-height: 1.6; border: 1px solid #333; padding: 15px;
-        }
-        .highlight { color: #00ff41; font-weight: bold; }
-
-        /* Restored Terminal */
-        .terminal-window {
-            background: #050505; border: 1px solid #333; padding: 15px;
-            margin-top: 20px; height: 120px; overflow-y: auto;
-            text-align: left; font-family: 'Courier New', monospace;
-            border-left: 2px solid #00ff41;
-            margin-bottom: 20px;
-        }
-
-        .terminal-label { font-size: 0.6rem; color: #666; display: block; margin-bottom: 5px; }
-        #agent-text { color: #00ff41; font-size: 0.85rem; line-height: 1.4; }
-        .cursor {
-            display: inline-block; width: 6px; height: 12px; background: #00ff41;
-            animation: blink 1s infinite; vertical-align: middle; margin-left: 5px;
-        }
-        @keyframes blink { 50% { opacity: 0; } }
-
-        /* Stop Button */
-        .stop-btn-modern {
-            background: transparent; border: 2px solid #ff3333; color: #ff3333;
-            padding: 15px 40px; font-family: 'Courier New', monospace; font-weight: bold;
-            font-size: 1rem; cursor: pointer; text-transform: uppercase;
-            width: 100%; transition: all 0.3s;
-        }
-        .stop-btn-modern:hover {
-            background: #ff3333; color: #000; box-shadow: 0 0 30px rgba(255, 51, 51, 0.6);
-        }
-    </style>
+</style>
 </head>
 <body>
 
-    <div id="gatekeeper-overlay">
-        <div class="gate-box">
-            <div class="gate-title">AGITATOR INDEX</div>
-            <p class="gate-sub">SECURE SIMULATION TERMINAL V3.3</p>
+<div id="bg-video"></div>
 
-            <div id="view-home">
-                <button class="gate-btn" onclick="switchGate('request')">REQUEST ACCESS</button>
-                <button class="gate-btn-secondary" onclick="switchGate('code')">I HAVE A CODE</button>
-            </div>
-
-            <div id="view-request">
-                <input type="email" class="gate-input" id="gate-email" placeholder="ENTER WORK EMAIL">
-                <button class="gate-btn" onclick="submitRequest()">JOIN WAITLIST</button>
-                <div class="gate-back" onclick="switchGate('home')">[ ← BACK ]</div>
-            </div>
-
-            <div id="view-code">
-                <input type="text" class="gate-input" id="gate-code-input" placeholder="ENTER CODE">
-                <button class="gate-btn" onclick="verifyGateCode()">VERIFY</button>
-                <div class="gate-error" id="gate-error">ACCESS DENIED</div>
-                <div class="gate-back" onclick="switchGate('home')">[ ← BACK ]</div>
-            </div>
-        </div>
+<div id="gatekeeper-overlay">
+  <div class="gatekeeper-box">
+    
+    <div class="gatekeeper-status">
+      <span class="blink-dot"></span> SYSTEM LOCKED // AUTHORIZATION REQUIRED
+    </div>
+    
+    <div class="gatekeeper-logo">AGITATOR INDEX</div>
+    
+    <div class="gatekeeper-text">
+      This simulation is restricted to Agitator-Grade personnel.
+      <br>Enter your clearance code or request priority access.
     </div>
 
-
-    <div class="interface-box" id="app-interface">
-        
-        <h1>Agitator Index™</h1>
-        <div class="sub-text">VOICE SIMULATION PROTOCOL V3.2</div>
-
-        <div id="form-section">
-            <div class="input-group">
-                <label>ACCESS CODE</label>
-                <input type="password" id="access-code" class="app-input" placeholder="Requires Verification" readonly>
-            </div>
-            <div class="input-group">
-                <label>OPERATOR NAME</label>
-                <input type="text" id="user-name" class="app-input" placeholder="Enter Full Name" autocomplete="off">
-            </div>
-            <div class="input-group">
-                <label>COMM LINK (EMAIL)</label>
-                <input type="email" id="user-email" class="app-input" placeholder="name@company.com" autocomplete="off">
-            </div>
-            <div class="input-group">
-                <label>PHONE ID</label>
-                <input type="tel" id="user-phone" class="app-input" placeholder="+61..." autocomplete="off">
-            </div>
-
-            <button id="start-btn" class="start-btn">SYSTEM LOCKED</button>
-        </div>
-
-        <div id="call-section">
-            <div class="voice-orb" id="voice-orb">🎙️</div>
-            
-            <div class="protocol-text">
-                PROTOCOL ACTIVE:<br>
-                <span class="highlight">3x WARM UP QUESTIONS</span><br>
-                <span class="highlight">10x TRADEOFF SCENARIOS</span><br><br>
-                Provide justification for every tradeoff.
-            </div>
-
-            <div class="terminal-window" id="live-terminal">
-                <span class="terminal-label">>> LIVE TRANSCRIPT</span>
-                <span id="agent-text">CONNECTING...</span><span class="cursor"></span>
-            </div>
-
-            <button id="stop-btn" class="stop-btn-modern">TERMINATE UPLINK</button>
-        </div>
-
+    <div class="gatekeeper-input-group">
+      <input type="text" id="access-code" placeholder="ENTER CLEARANCE CODE" onkeyup="checkEnter(event)">
+      <button class="gatekeeper-btn" onclick="validateCode()">AUTHENTICATE</button>
     </div>
 
-    <script>
-        // --- GATEKEEPER LOGIC ---
-        const VALID_CODES = ['MONEYBALL', 'AGITATOR', 'VIP'];
-        let verifiedCode = "";
+    <div class="gatekeeper-divider">- OR -</div>
 
-        function switchGate(view) {
-            document.getElementById('view-home').style.display = 'none';
-            document.getElementById('view-request').style.display = 'none';
-            document.getElementById('view-code').style.display = 'none';
-            document.getElementById('gate-error').style.display = 'none';
+    <form id="waitlist-form" onsubmit="handleWaitlist(event)">
+      <div class="gatekeeper-input-group">
+        <input type="email" name="email" id="waitlist-email" placeholder="ENTER WORK EMAIL" required>
+        <button type="submit" class="gatekeeper-btn secondary">REQUEST ACCESS</button>
+      </div>
+      <div id="waitlist-status"></div>
+    </form>
 
-            if(view === 'home') document.getElementById('view-home').style.display = 'block';
-            if(view === 'request') {
-                document.getElementById('view-request').style.display = 'block';
-                document.getElementById('gate-email').focus();
-            }
-            if(view === 'code') {
-                document.getElementById('view-code').style.display = 'block';
-                document.getElementById('gate-code-input').focus();
-            }
+  </div>
+</div>
+
+<script>
+  // --- 1. ACCESS CODE LOGIC ---
+  const VALID_CODES = ['AGITATOR', 'MONEYBALL', 'VIP2026', 'SAMI'];
+
+  function checkEnter(e) {
+    if (e.key === 'Enter') validateCode();
+  }
+
+  function validateCode() {
+    const input = document.getElementById('access-code');
+    const code = input.value.trim().toUpperCase();
+    
+    if (VALID_CODES.includes(code)) {
+      // SUCCESS: Unlock the simulation
+      grantAccess();
+    } else {
+      // FAIL: Visual error
+      input.classList.add('error');
+      input.value = '';
+      input.placeholder = "ACCESS DENIED";
+      setTimeout(() => {
+        input.classList.remove('error');
+        input.placeholder = "ENTER CLEARANCE CODE";
+      }, 800);
+    }
+  }
+
+  function grantAccess() {
+    const overlay = document.getElementById('gatekeeper-overlay');
+    overlay.style.opacity = '0';
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      // HERE: This is where the main app would reveal itself
+      // or redirect to the logged-in area
+      // window.location.href = "/simulation-dashboard"; 
+    }, 800);
+  }
+
+  // --- 2. WAITLIST LOGIC (FORMSPREE INTEGRATION) ---
+  async function handleWaitlist(e) {
+    e.preventDefault(); // Stop page refresh
+    
+    const emailInput = document.getElementById('waitlist-email');
+    const email = emailInput.value;
+    const statusMsg = document.getElementById('waitlist-status');
+    const btn = document.querySelector('.gatekeeper-btn.secondary');
+    
+    // YOUR LIVE ENDPOINT
+    const endpoint = "https://formspree.io/f/mbddzwgj";
+
+    if (!email) return;
+
+    // UI Loading State
+    btn.innerHTML = "TRANSMITTING...";
+    btn.style.opacity = "0.7";
+    statusMsg.style.display = "block";
+    statusMsg.style.color = "#FFFF00";
+    statusMsg.innerText = ">> CONNECTING TO SERVER...";
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        body: JSON.stringify({ email: email, source: "Agitator Index Gatekeeper" }),
+        headers: { 
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         }
+      });
 
-        function submitRequest() {
-            const btn = document.querySelector('#view-request button');
-            btn.innerText = "ADDING TO QUEUE...";
-            setTimeout(() => {
-                alert("You have been added to the priority waitlist.");
-                location.reload();
-            }, 1000);
-        }
+      if (response.ok) {
+        // Success State
+        statusMsg.innerText = ">> PRIORITY ACCESS LOGGED. CHECK INBOX.";
+        statusMsg.style.color = "#00FF41";
+        emailInput.value = "";
+        btn.innerHTML = "REQUEST SENT";
+        btn.disabled = true;
+      } else {
+        // Error State
+        throw new Error('Submission failed');
+      }
+    } catch (error) {
+      statusMsg.innerText = ">> CONNECTION ERROR. TRY AGAIN.";
+      statusMsg.style.color = "#FF3333";
+      btn.innerHTML = "RETRY ACCESS";
+      btn.style.opacity = "1";
+    }
+  }
+</script>
 
-        function verifyGateCode() {
-            const input = document.getElementById('gate-code-input');
-            const code = input.value.trim().toUpperCase();
-            
-            if(VALID_CODES.includes(code)) {
-                verifiedCode = code;
-                // UNLOCK APP
-                const gateOverlay = document.getElementById('gatekeeper-overlay');
-                gateOverlay.style.opacity = '0';
-                setTimeout(() => { gateOverlay.style.display = 'none'; }, 500);
-                
-                // SHOW APP
-                document.getElementById('app-interface').style.display = 'block';
-
-                // AUTO-FILL CODE
-                const appInput = document.getElementById('access-code');
-                appInput.value = code;
-                appInput.classList.add('valid-code');
-                checkInputs();
-                
-            } else {
-                document.getElementById('gate-error').style.display = 'block';
-                input.style.borderColor = '#ff3333';
-            }
-        }
-    </script>
-
-    <script type="module">
-        // --- MAIN APP LOGIC ---
-        import { RetellWebClient } from "https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/+esm";
-
-        const retellWebClient = new RetellWebClient();
-        const REGISTER_CALL_URL = "/api/register-call"; 
-
-        // Elements
-        const formSection = document.getElementById('form-section');
-        const callSection = document.getElementById('call-section');
-        const startBtn = document.getElementById('start-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const nameInput = document.getElementById('user-name');
-        const emailInput = document.getElementById('user-email');
-        const phoneInput = document.getElementById('user-phone');
-        
-        const voiceOrb = document.getElementById('voice-orb');
-        const liveTerminal = document.getElementById('live-terminal');
-        const agentText = document.getElementById('agent-text');
-
-        // VALIDATION
-        window.checkInputs = function() {
-            if(verifiedCode && nameInput.value.length > 2 && emailInput.value.includes('@') && phoneInput.value.length > 5) {
-                startBtn.classList.add('ready');
-                startBtn.innerText = "INITIATE SEQUENCE";
-            } else {
-                startBtn.classList.remove('ready');
-                startBtn.innerText = "AWAITING DATA...";
-            }
-        }
-        
-        nameInput.addEventListener('input', checkInputs);
-        emailInput.addEventListener('input', checkInputs);
-        phoneInput.addEventListener('input', checkInputs);
-
-        // RETELL EVENTS
-        retellWebClient.on("call_started", () => {
-            formSection.style.display = 'none';
-            callSection.style.display = 'block';
-            agentText.innerText = "UPLINK ESTABLISHED. LISTENING...";
-        });
-
-        retellWebClient.on("call_ended", () => {
-            agentText.innerText = "LINK SEVERED.";
-            agentText.style.color = "#ff3333";
-            voiceOrb.style.borderColor = "#ff3333";
-            voiceOrb.style.color = "#ff3333";
-            voiceOrb.style.boxShadow = "none";
-            voiceOrb.style.animation = "none";
-            stopBtn.style.display = "none";
-            setTimeout(() => { location.reload(); }, 3500);
-        });
-
-        retellWebClient.on("update", (update) => {
-            if (update.transcript && update.transcript.length > 0) {
-                const lastMsg = update.transcript[update.transcript.length - 1];
-                // Show both agent and user text in the terminal
-                agentText.innerHTML = `<span style="color:#666">[${lastMsg.role}]:</span> ${lastMsg.content}`;
-                liveTerminal.scrollTop = liveTerminal.scrollHeight;
-            }
-        });
-
-        retellWebClient.on("error", (error) => {
-            console.error(error);
-            alert("Connection Error: " + error.message);
-            retellWebClient.stopCall();
-        });
-
-        // ACTIONS
-        startBtn.addEventListener('click', async () => {
-            startBtn.innerText = "CONNECTING...";
-            startBtn.classList.remove('ready');
-            
-            const leadData = {
-                name: nameInput.value,
-                email: emailInput.value,
-                phone: phoneInput.value
-            };
-
-            try {
-                const response = await fetch(REGISTER_CALL_URL, {
-                    method: "POST",
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(leadData)
-                });
-                if (!response.ok) throw new Error("Backend Failed");
-                const data = await response.json();
-                await retellWebClient.startCall({ accessToken: data.access_token });
-            } catch (err) {
-                console.error(err);
-                alert("Failed to start call: " + err.message);
-                checkInputs();
-            }
-        });
-
-        stopBtn.addEventListener('click', () => {
-            retellWebClient.stopCall();
-        });
-    </script>
 </body>
 </html>
