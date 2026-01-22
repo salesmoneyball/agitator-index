@@ -86,7 +86,7 @@
 
 
         /* ========================================= */
-        /* 3. MAIN APP INTERFACE (HIDDEN INITIALLY)  */
+        /* 3. MAIN APP INTERFACE                     */
         /* ========================================= */
         .interface-box {
             display: none; /* Hidden until unlocked */
@@ -119,7 +119,6 @@
 
         .app-input:focus { border-color: #00ff41; background: #000; }
         
-        /* Specific styling for the read-only access code in the app */
         #app-code-display.valid-code { color: #00ff41; border-color: #00ff41; opacity: 0.7; }
 
         .start-btn {
@@ -136,11 +135,10 @@
 
 
         /* ========================================= */
-        /* 4. CALL UI (TERMINAL + AVATAR)            */
+        /* 4. ACTIVE TRANSMISSION AVATAR             */
         /* ========================================= */
         #call-section { display: none; text-align: center; }
 
-        /* --- NEW AVATAR CSS --- */
         .avatar-container {
             width: 250px; height: 180px; margin: 0 auto 30px auto;
             position: relative; overflow: hidden; border: 2px solid #333;
@@ -150,46 +148,74 @@
 
         .avatar-img {
             width: 100%; height: 100%; object-fit: cover;
-            /* Base state: slightly dim */
-            opacity: 0.8; transition: opacity 0.1s;
+            opacity: 0.7; 
+            /* Default: Green Terminal Look */
+            filter: grayscale(100%) sepia(100%) hue-rotate(80deg) saturate(300%) contrast(1.2); 
+            transition: filter 0.3s, opacity 0.3s;
         }
 
+        /* SCANLINES */
         .scanlines {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
                         linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
             background-size: 100% 3px, 3px 100%;
-            pointer-events: none; z-index: 2;
+            pointer-events: none; z-index: 5;
         }
 
-        /* STATE: TALKING (Glitch Effect) */
+        /* TRACKING BAR (Vertical Fading Line) */
+        .tracking-bar {
+            position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            animation: tracking 3s infinite linear;
+            z-index: 6; pointer-events: none;
+        }
+        @keyframes tracking { 0% { top: -10%; opacity:0; } 50% { opacity:1;} 100% { top: 110%; opacity:0; } }
+
+        /* --- STATE: AGENT SPEAKING (Glitch & Transmission) --- */
         .avatar-container.speaking .avatar-img {
             opacity: 1;
-            animation: glitch-talk 0.15s infinite;
-            filter: contrast(1.2) brightness(1.1);
+            /* Rapid Slicing Effect */
+            animation: glitch-slice 0.3s infinite linear alternate-reverse;
+            filter: grayscale(100%) sepia(100%) hue-rotate(80deg) saturate(600%) contrast(1.5) brightness(1.3);
         }
         .avatar-container.speaking {
             border-color: #00FF41;
-            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+            box-shadow: 0 0 25px rgba(0, 255, 65, 0.3);
         }
 
-        @keyframes glitch-talk {
-            0% { transform: translate(0, 0); }
-            20% { transform: translate(-2px, 1px); }
-            40% { transform: translate(1px, -1px); }
-            60% { transform: translate(-1px, 2px); }
-            80% { transform: translate(2px, -1px); }
-            100% { transform: translate(0, 0); }
+        /* The Glitch Animation (Slices the image) */
+        @keyframes glitch-slice {
+            0% { clip-path: inset(10% 0 80% 0); transform: translate(-2px, 1px); }
+            20% { clip-path: inset(80% 0 1% 0); transform: translate(2px, -1px); }
+            40% { clip-path: inset(40% 0 40% 0); transform: translate(-2px, 2px); }
+            60% { clip-path: inset(10% 0 60% 0); transform: translate(2px, -2px); }
+            80% { clip-path: inset(60% 0 20% 0); transform: translate(0px, 2px); }
+            100% { clip-path: inset(0% 0 0% 0); transform: translate(0, 0); }
         }
 
-        /* STATE: LISTENING (Green Pulse) */
+        /* --- STATE: USER SPEAKING / MIC ON (Yellow/Amber Mode) --- */
         .avatar-container.listening {
-            border-color: #00FF41;
-            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+            border-color: #FFD700; /* Gold/Amber */
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
         }
-        /* --- END AVATAR CSS --- */
+        
+        .avatar-container.listening .avatar-img {
+            /* Shift from Green (80deg) to Yellow/Amber (~40deg) */
+            filter: grayscale(100%) sepia(100%) hue-rotate(10deg) saturate(600%) contrast(1.2) brightness(1.1);
+            opacity: 0.9;
+            /* Gentle Pulse */
+            animation: mic-pulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes mic-pulse {
+            0% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+            100% { opacity: 0.8; transform: scale(1); }
+        }
 
 
+        /* TERMINAL TEXT */
         .protocol-text {
             font-family: 'Courier New', monospace; color: #fff; font-size: 0.9rem;
             margin-bottom: 20px; line-height: 1.6; border: 1px solid #333; padding: 15px;
@@ -228,7 +254,7 @@
     <div id="gatekeeper-overlay">
         <div class="gate-box">
             <div class="gate-title">AGITATOR INDEX</div>
-            <p class="gate-sub">SECURE SIMULATION TERMINAL V4.1</p>
+            <p class="gate-sub">SECURE SIMULATION TERMINAL V4.2</p>
 
             <div id="view-home">
                 <button class="gate-btn" onclick="switchGate('request')">REQUEST ACCESS</button>
@@ -284,6 +310,7 @@
             
             <div id="agent-avatar" class="avatar-container">
                 <div class="scanlines"></div>
+                <div class="tracking-bar"></div>
                 <img src="http://salesmoneyball.com/wp-content/uploads/2026/01/AI-Avatar.png" class="avatar-img" id="avatar-image-el">
             </div>
             
@@ -332,12 +359,10 @@
 
         async function handleWaitlist(e) {
             e.preventDefault();
-            
             const emailInput = document.getElementById('waitlist-email');
             const email = emailInput.value;
             const statusMsg = document.getElementById('waitlist-status');
             const btn = document.getElementById('waitlist-btn');
-            
             const endpoint = "https://formspree.io/f/mbddzwgj";
 
             if (!email) return;
@@ -378,22 +403,14 @@
             
             if(VALID_CODES.includes(code)) {
                 verifiedCode = code;
-                
-                // 1. Fade out Gatekeeper
                 const gateOverlay = document.getElementById('gatekeeper-overlay');
                 gateOverlay.style.opacity = '0';
                 setTimeout(() => { gateOverlay.style.display = 'none'; }, 500);
-                
-                // 2. Reveal Main App
                 document.getElementById('app-interface').style.display = 'block';
-
-                // 3. Pre-fill the internal code
                 const appInput = document.getElementById('app-code-display');
                 appInput.value = code;
                 appInput.classList.add('valid-code');
-                
-                checkInputs(); // Run validation check
-                
+                checkInputs();
             } else {
                 document.getElementById('gate-error').style.display = 'block';
                 input.style.borderColor = '#ff3333';
@@ -402,14 +419,11 @@
     </script>
 
     <script type="module">
-        // --- RETELL APP LOGIC ---
         import { RetellWebClient } from "https://cdn.jsdelivr.net/npm/retell-client-js-sdk@latest/+esm";
 
         const retellWebClient = new RetellWebClient();
-        // NOTE: Ensure this endpoint exists on your backend/hosting for the call to actually start
         const REGISTER_CALL_URL = "/api/register-call"; 
 
-        // Elements
         const formSection = document.getElementById('form-section');
         const callSection = document.getElementById('call-section');
         const startBtn = document.getElementById('start-btn');
@@ -422,7 +436,6 @@
         const liveTerminal = document.getElementById('live-terminal');
         const agentText = document.getElementById('agent-text');
 
-        // VALIDATION
         window.checkInputs = function() {
             if(verifiedCode && nameInput.value.length > 2 && emailInput.value.includes('@') && phoneInput.value.length > 5) {
                 startBtn.classList.add('ready');
@@ -442,39 +455,37 @@
             formSection.style.display = 'none';
             callSection.style.display = 'block';
             agentText.innerText = "UPLINK ESTABLISHED. LISTENING...";
-            avatarContainer.classList.add('listening'); // Start green pulse
+            // Default to listening mode (Yellow/Amber) until agent speaks
+            avatarContainer.classList.add('listening'); 
         });
 
         retellWebClient.on("call_ended", () => {
             agentText.innerText = "LINK SEVERED.";
             agentText.style.color = "#ff3333";
-            
-            // Kill Avatar
             avatarContainer.classList.remove('speaking');
             avatarContainer.classList.remove('listening');
             avatarContainer.style.borderColor = "#ff3333";
             avatarContainer.style.opacity = "0.5";
-
             stopBtn.style.display = "none";
             setTimeout(() => { location.reload(); }, 3500);
         });
 
-        // AVATAR ANIMATION TRIGGERS
+        // AVATAR STATES
         retellWebClient.on("agent_start_talking", () => {
-            avatarContainer.classList.add('speaking');
             avatarContainer.classList.remove('listening');
+            avatarContainer.classList.add('speaking');
         });
 
         retellWebClient.on("agent_stop_talking", () => {
             avatarContainer.classList.remove('speaking');
-            avatarContainer.classList.add('listening');
+            avatarContainer.classList.add('listening'); // Back to Yellow/Mic On
         });
 
         retellWebClient.on("user_start_talking", () => {
-             // Ensure it's listening when user speaks
+             // Reinforce listening state (Yellow)
+            avatarContainer.classList.remove('speaking');
             avatarContainer.classList.add('listening');
         });
-
 
         retellWebClient.on("update", (update) => {
             if (update.transcript && update.transcript.length > 0) {
@@ -490,17 +501,10 @@
             retellWebClient.stopCall();
         });
 
-        // ACTIONS
         startBtn.addEventListener('click', async () => {
             startBtn.innerText = "CONNECTING...";
             startBtn.classList.remove('ready');
-            
-            const leadData = {
-                name: nameInput.value,
-                email: emailInput.value,
-                phone: phoneInput.value
-            };
-
+            const leadData = { name: nameInput.value, email: emailInput.value, phone: phoneInput.value };
             try {
                 const response = await fetch(REGISTER_CALL_URL, {
                     method: "POST",
@@ -517,9 +521,7 @@
             }
         });
 
-        stopBtn.addEventListener('click', () => {
-            retellWebClient.stopCall();
-        });
+        stopBtn.addEventListener('click', () => { retellWebClient.stopCall(); });
     </script>
 </body>
 </html>
