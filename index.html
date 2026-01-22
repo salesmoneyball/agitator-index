@@ -136,23 +136,59 @@
 
 
         /* ========================================= */
-        /* 4. CALL UI (ORB + TERMINAL)               */
+        /* 4. CALL UI (TERMINAL + AVATAR)            */
         /* ========================================= */
         #call-section { display: none; text-align: center; }
 
-        .voice-orb {
-            width: 100px; height: 100px; background: #000; border-radius: 50%;
-            border: 2px solid #00ff41; margin: 0 auto 30px auto;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 40px; color: #00ff41;
-            box-shadow: 0 0 40px rgba(0,255,65,0.4), inset 0 0 20px rgba(0,255,65,0.2);
-            animation: pulse-orb 2s infinite ease-in-out;
+        /* --- NEW AVATAR CSS --- */
+        .avatar-container {
+            width: 250px; height: 180px; margin: 0 auto 30px auto;
+            position: relative; overflow: hidden; border: 2px solid #333;
+            background: #000; border-radius: 4px;
+            transition: all 0.3s;
         }
-        @keyframes pulse-orb {
-            0% { transform: scale(1); box-shadow: 0 0 40px rgba(0,255,65,0.4), inset 0 0 20px rgba(0,255,65,0.2); }
-            50% { transform: scale(1.05); box-shadow: 0 0 80px rgba(0,255,65,0.6), inset 0 0 40px rgba(0,255,65,0.4); }
-            100% { transform: scale(1); box-shadow: 0 0 40px rgba(0,255,65,0.4), inset 0 0 20px rgba(0,255,65,0.2); }
+
+        .avatar-img {
+            width: 100%; height: 100%; object-fit: cover;
+            /* Base state: slightly dim */
+            opacity: 0.8; transition: opacity 0.1s;
         }
+
+        .scanlines {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none; z-index: 2;
+        }
+
+        /* STATE: TALKING (Glitch Effect) */
+        .avatar-container.speaking .avatar-img {
+            opacity: 1;
+            animation: glitch-talk 0.15s infinite;
+            filter: contrast(1.2) brightness(1.1);
+        }
+        .avatar-container.speaking {
+            border-color: #00FF41;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+        }
+
+        @keyframes glitch-talk {
+            0% { transform: translate(0, 0); }
+            20% { transform: translate(-2px, 1px); }
+            40% { transform: translate(1px, -1px); }
+            60% { transform: translate(-1px, 2px); }
+            80% { transform: translate(2px, -1px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        /* STATE: LISTENING (Green Pulse) */
+        .avatar-container.listening {
+            border-color: #00FF41;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+        }
+        /* --- END AVATAR CSS --- */
+
 
         .protocol-text {
             font-family: 'Courier New', monospace; color: #fff; font-size: 0.9rem;
@@ -192,7 +228,7 @@
     <div id="gatekeeper-overlay">
         <div class="gate-box">
             <div class="gate-title">AGITATOR INDEX</div>
-            <p class="gate-sub">SECURE SIMULATION TERMINAL V4.0</p>
+            <p class="gate-sub">SECURE SIMULATION TERMINAL V4.1</p>
 
             <div id="view-home">
                 <button class="gate-btn" onclick="switchGate('request')">REQUEST ACCESS</button>
@@ -245,7 +281,11 @@
         </div>
 
         <div id="call-section">
-            <div class="voice-orb" id="voice-orb">🎙️</div>
+            
+            <div id="agent-avatar" class="avatar-container">
+                <div class="scanlines"></div>
+                <img src="http://salesmoneyball.com/wp-content/uploads/2026/01/AI-Avatar.png" class="avatar-img" id="avatar-image-el">
+            </div>
             
             <div class="protocol-text">
                 PROTOCOL ACTIVE:<br>
@@ -378,7 +418,7 @@
         const emailInput = document.getElementById('user-email');
         const phoneInput = document.getElementById('user-phone');
         
-        const voiceOrb = document.getElementById('voice-orb');
+        const avatarContainer = document.getElementById('agent-avatar');
         const liveTerminal = document.getElementById('live-terminal');
         const agentText = document.getElementById('agent-text');
 
@@ -402,18 +442,39 @@
             formSection.style.display = 'none';
             callSection.style.display = 'block';
             agentText.innerText = "UPLINK ESTABLISHED. LISTENING...";
+            avatarContainer.classList.add('listening'); // Start green pulse
         });
 
         retellWebClient.on("call_ended", () => {
             agentText.innerText = "LINK SEVERED.";
             agentText.style.color = "#ff3333";
-            voiceOrb.style.borderColor = "#ff3333";
-            voiceOrb.style.color = "#ff3333";
-            voiceOrb.style.boxShadow = "none";
-            voiceOrb.style.animation = "none";
+            
+            // Kill Avatar
+            avatarContainer.classList.remove('speaking');
+            avatarContainer.classList.remove('listening');
+            avatarContainer.style.borderColor = "#ff3333";
+            avatarContainer.style.opacity = "0.5";
+
             stopBtn.style.display = "none";
             setTimeout(() => { location.reload(); }, 3500);
         });
+
+        // AVATAR ANIMATION TRIGGERS
+        retellWebClient.on("agent_start_talking", () => {
+            avatarContainer.classList.add('speaking');
+            avatarContainer.classList.remove('listening');
+        });
+
+        retellWebClient.on("agent_stop_talking", () => {
+            avatarContainer.classList.remove('speaking');
+            avatarContainer.classList.add('listening');
+        });
+
+        retellWebClient.on("user_start_talking", () => {
+             // Ensure it's listening when user speaks
+            avatarContainer.classList.add('listening');
+        });
+
 
         retellWebClient.on("update", (update) => {
             if (update.transcript && update.transcript.length > 0) {
