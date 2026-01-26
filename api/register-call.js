@@ -1,15 +1,28 @@
 export default async function handler(req, res) {
-  const AGENT_ID = process.env.RETELL_AGENT_ID; 
+  // 1. SETUP: Load keys from environment variables
+  const DEFAULT_AGENT_ID = process.env.RETELL_AGENT_ID; 
+  const CRO_AGENT_ID = process.env.RETELL_AGENT_ID_CRO; // Make sure to add this to your .env file
   const API_KEY = process.env.RETELL_API_KEY; 
 
-  if (!AGENT_ID || !API_KEY) {
+  // Safety check to ensure keys exist
+  if (!DEFAULT_AGENT_ID || !API_KEY) {
     return res.status(500).json({ error: "Missing API Keys" });
   }
 
   try {
-    // 1. Unpack the data from the Frontend
-    const { name, email, phone } = req.body || {};
+    // 2. PARSE: Unpack the data coming from the frontend
+    const { name, email, phone, access_code } = req.body || {};
 
+    // 3. LOGIC: Determine which agent to use based on the code
+    let selectedAgentId = DEFAULT_AGENT_ID;
+
+    // If the code is 'CRO' (and the CRO agent ID exists), switch agents
+    if (access_code === 'CRO' && CRO_AGENT_ID) {
+        selectedAgentId = CRO_AGENT_ID;
+        console.log(`Switching to CRO Agent: ${CRO_AGENT_ID}`);
+    }
+
+    // 4. CALL RETELL: Register the call with the specific agent
     const response = await fetch("https://api.retellai.com/v2/create-web-call", {
       method: "POST",
       headers: {
@@ -17,14 +30,16 @@ export default async function handler(req, res) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        agent_id: AGENT_ID,
-        // 2. Attach it to Retell as Metadata
+        agent_id: selectedAgentId, 
+        
+        // Metadata for analytics
         metadata: {
             "user_name": name || "Anonymous",
             "user_email": email || "Not Provided",
-            "user_phone": phone || "Not Provided"
+            "user_phone": phone || "Not Provided",
+            "access_method": access_code || "Standard" 
         },
-        // Optional: Inject name into the LLM context so the agent knows who they are talking to
+        // Dynamic variables for the AI to use in conversation
         retell_llm_dynamic_variables: {
             "user_name": name || "Candidate"
         }
