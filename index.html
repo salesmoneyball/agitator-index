@@ -333,7 +333,8 @@
 
     <script>
         // --- GATEKEEPER LOGIC ---
-        const VALID_CODES = ['MONEYBALL', 'AGITATOR', 'VIP', 'SAMI'];
+        // ADDED 'CRO' TO THIS LIST
+        const VALID_CODES = ['MONEYBALL', 'AGITATOR', 'VIP', 'SAMI', 'CRO'];
         let verifiedCode = "";
 
         function switchGate(view) {
@@ -437,7 +438,10 @@
         const agentText = document.getElementById('agent-text');
 
         window.checkInputs = function() {
-            if(verifiedCode && nameInput.value.length > 2 && emailInput.value.includes('@') && phoneInput.value.length > 5) {
+            // Need to re-verify code here just in case, though it should be set
+            const currentCode = document.getElementById('app-code-display').value;
+            
+            if(currentCode && nameInput.value.length > 2 && emailInput.value.includes('@') && phoneInput.value.length > 5) {
                 startBtn.classList.add('ready');
                 startBtn.innerText = "INITIATE SEQUENCE";
             } else {
@@ -504,7 +508,15 @@
         startBtn.addEventListener('click', async () => {
             startBtn.innerText = "CONNECTING...";
             startBtn.classList.remove('ready');
-            const leadData = { name: nameInput.value, email: emailInput.value, phone: phoneInput.value };
+            
+            // IMPORTANT: Sending the code to the backend
+            const leadData = { 
+                name: nameInput.value, 
+                email: emailInput.value, 
+                phone: phoneInput.value,
+                access_code: document.getElementById('app-code-display').value 
+            };
+            
             try {
                 const response = await fetch(REGISTER_CALL_URL, {
                     method: "POST",
