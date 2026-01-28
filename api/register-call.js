@@ -1,28 +1,50 @@
 export default async function handler(req, res) {
   // 1. SETUP: Load keys from environment variables
-  const DEFAULT_AGENT_ID = process.env.RETELL_AGENT_ID; 
-  const CRO_AGENT_ID = process.env.RETELL_AGENT_ID_CRO; // Make sure to add this to your .env file
-  const API_KEY = process.env.RETELL_API_KEY; 
+  const API_KEY = process.env.RETELL_API_KEY;
+  
+  // Agent IDs
+  const AGENTS = {
+    DEFAULT: process.env.RETELL_AGENT_ID,       // "MONEYBALL" / "AGITATOR" / "VIP"
+    CRO: process.env.RETELL_AGENT_ID_CRO,       // "CRO"
+    MANAGER: process.env.RETELL_AGENT_ID_MANAGER, // "LEADER"
+    SDR: process.env.RETELL_AGENT_ID_SDR        // "SNIPER"
+  };
 
-  // Safety check to ensure keys exist
-  if (!DEFAULT_AGENT_ID || !API_KEY) {
-    return res.status(500).json({ error: "Missing API Keys" });
+  // Safety check
+  if (!API_KEY || !AGENTS.DEFAULT) {
+    return res.status(500).json({ error: "Missing API Keys or Default Agent ID" });
   }
 
   try {
-    // 2. PARSE: Unpack the data coming from the frontend
+    // 2. PARSE: Unpack data from frontend
     const { name, email, phone, access_code } = req.body || {};
 
-    // 3. LOGIC: Determine which agent to use based on the code
-    let selectedAgentId = DEFAULT_AGENT_ID;
+    // 3. LOGIC: Select Agent based on Code
+    // Default to the standard agent
+    let selectedAgentId = AGENTS.DEFAULT;
+    
+    // Normalize code to uppercase for safety
+    const code = access_code ? access_code.toUpperCase().trim() : "";
 
-    // If the code is 'CRO' (and the CRO agent ID exists), switch agents
-    if (access_code === 'CRO' && CRO_AGENT_ID) {
-        selectedAgentId = CRO_AGENT_ID;
-        console.log(`Switching to CRO Agent: ${CRO_AGENT_ID}`);
+    switch (code) {
+      case 'CRO':
+        if (AGENTS.CRO) selectedAgentId = AGENTS.CRO;
+        break;
+      case 'LEADER':
+        if (AGENTS.MANAGER) selectedAgentId = AGENTS.MANAGER;
+        break;
+      case 'SNIPER':
+        if (AGENTS.SDR) selectedAgentId = AGENTS.SDR;
+        break;
+      default:
+        // 'MONEYBALL', 'VIP', 'SAMI' fall through to DEFAULT
+        selectedAgentId = AGENTS.DEFAULT;
+        break;
     }
 
-    // 4. CALL RETELL: Register the call with the specific agent
+    console.log(`[Backend] Code: ${code} | Switching to Agent: ${selectedAgentId}`);
+
+    // 4. CALL RETELL: Register the call
     const response = await fetch("https://api.retellai.com/v2/create-web-call", {
       method: "POST",
       headers: {
@@ -37,9 +59,9 @@ export default async function handler(req, res) {
             "user_name": name || "Anonymous",
             "user_email": email || "Not Provided",
             "user_phone": phone || "Not Provided",
-            "access_method": access_code || "Standard" 
+            "access_code": code 
         },
-        // Dynamic variables for the AI to use in conversation
+        // Dynamic variables for the AI to use
         retell_llm_dynamic_variables: {
             "user_name": name || "Candidate"
         }
@@ -47,7 +69,8 @@ export default async function handler(req, res) {
     });
 
     if (!response.ok) {
-        throw new Error(`Retell API Error: ${response.statusText}`);
+        const errText = await response.text();
+        throw new Error(`Retell API Error: ${response.status} ${errText}`);
     }
 
     const data = await response.json();
